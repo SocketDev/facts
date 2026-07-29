@@ -26,11 +26,13 @@ export interface PackageExportsConfig {
 export const config: PackageExportsConfig = {
   ignore: [
     'dist/*.d.mts',
+    'dist/conformance/*.d.mts',
     'dist/contract/*.d.mts',
     'dist/pipeline/*.d.mts',
     'dist/report/*.d.mts',
-    'dist/rolldown-runtime-*.js',
     'dist/run/*.d.mts',
-    'dist/validate-sidecar-*.js',
+    // rolldown's shared chunks are `<name>-<contenthash>.js`. No entry point is
+    // hyphenated, so this matches the bundler's output and nothing else.
+    'dist/*-*.js',
   ],
 }

@@ -40,6 +40,29 @@ export type {
   ContractValidation,
   ContractViolation,
 } from './contract/violations.mts'
+export {
+  compareFactsToGroundTruth,
+  conformanceViolations,
+  renderConformanceReport,
+} from './conformance/compare.mts'
+export type {
+  ComponentDiff,
+  ComponentVerdict,
+  ConformanceComparison,
+  EdgeDiff,
+} from './conformance/compare.mts'
+export {
+  createGroundTruth,
+  groundTruthKey,
+  parseGradleDependencyRow,
+  parseGradleDependencyTree,
+} from './conformance/ground-truth.mts'
+export type { GradleRow, GroundTruth } from './conformance/ground-truth.mts'
+export {
+  isMavenTreeNode,
+  parseMavenDependencyTreeJson,
+} from './conformance/maven-tree.mts'
+export type { MavenTreeNode } from './conformance/maven-tree.mts'
 export { assembleFacts } from './pipeline/assemble.mts'
 export type { AssembleOptions, AssembleResult } from './pipeline/assemble.mts'
 export { parseRecords, unescapeField } from './pipeline/records.mts'
@@ -92,4 +115,10 @@ export { assertFactsInvocation } from './run/invocation.mts'
 export type { FactsInvocation } from './run/invocation.mts'
 export type { FactsGenerationResult } from './run/result.mts'
 export { runFactsGeneration } from './run/run-facts-generation.mts'
+export {
+  DEFAULT_FACTS_GENERATION_TIMEOUT_MS,
+  FACTS_GENERATION_TIMEOUT_ENV_VAR,
+  factsGenerationTimeoutMs,
+  parseTimeoutMs,
+} from './run/timeouts.mts'
 export type { FactsGenerationOptions } from './run/run-facts-generation.mts'

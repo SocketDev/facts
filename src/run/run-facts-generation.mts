@@ -9,6 +9,7 @@ import {
 } from '../assets.mts'
 import { applyBuildEnvPolicy } from './env.mts'
 import { assertFactsInvocation } from './invocation.mts'
+import { factsGenerationTimeoutMs } from './timeouts.mts'
 import {
   assembleFromRecords,
   runBuildToolNeverThrow,
@@ -37,6 +38,9 @@ export type FactsGenerationOptions = FactsInvocation & {
   envPolicy?: BuildEnvPolicy | undefined
   stdio?: 'inherit' | 'pipe' | undefined
   signal?: AbortSignal | undefined
+  // Ceiling on the build tool's wall time; 0 disables it. Defaults to
+  // SOCKET_FACTS_TIMEOUT_MS, then to DEFAULT_FACTS_GENERATION_TIMEOUT_MS.
+  timeoutMs?: number | undefined
 }
 
 export function emitterProps(
@@ -179,6 +183,7 @@ export function spawnConfigFor(config: FactsGenerationOptions): SpawnConfig {
     cwd: cfg.cwd,
     env: applyBuildEnvPolicy(cfg.env, cfg.envPolicy ?? 'scrub'),
     stdio: cfg.stdio ?? 'pipe',
+    timeoutMs: cfg.timeoutMs ?? factsGenerationTimeoutMs(),
     ...(cfg.signal ? { signal: cfg.signal } : {}),
   }
 }

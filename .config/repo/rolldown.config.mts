@@ -28,6 +28,7 @@ const config: RolldownOptions = {
   external: [/^@socketsecurity\//, /^node:/],
   input: {
     assets: path.join(srcPath, 'assets.mts'),
+    conformance: path.join(srcPath, 'conformance', 'index.mts'),
     contract: path.join(srcPath, 'contract', 'index.mts'),
     index: path.join(srcPath, 'index.mts'),
   },

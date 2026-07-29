@@ -39,6 +39,8 @@ export type SpawnConfig = {
   env: NodeJS.ProcessEnv
   signal?: AbortSignal | undefined
   stdio: 'inherit' | 'pipe'
+  // 0 means no ceiling. See run/timeouts.mts.
+  timeoutMs: number
 }
 
 // A build tool that exits non-zero still leaves a usable records file, because
@@ -70,6 +72,7 @@ export async function runBuildToolNeverThrow(
       cwd: config.cwd,
       env: config.env,
       stdio: config.stdio,
+      ...(config.timeoutMs > 0 ? { timeout: config.timeoutMs } : {}),
       ...(config.signal ? { signal: config.signal } : {}),
     })
     return {
