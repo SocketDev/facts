@@ -24,7 +24,7 @@
     },
     "./contract": {
       "source": "./src/contract/index.mts",
-      "types": "./dist/contract.d.mts",
+      "types": "./dist/contract/index.d.mts",
       "default": "./dist/contract.js"
     },
     "./package.json": "./package.json"

@@ -127,3 +127,10 @@ npm-debug.log
 pnpm-debug.log
 *.tgz
 # </fleet-canonical>
+
+# Maven core-extension build output. `pnpm run build:maven-extension` compiles
+# the sources under emitters/maven-extension/src into the jar the published
+# package ships; both the wrapper's target/ dir and the placed jar are build
+# output, never tracked.
+/emitters/maven-extension/target/
+/emitters/maven-extension/socket-facts-maven-extension.jar
