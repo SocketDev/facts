@@ -130,6 +130,10 @@
 - 🚨 The sidecar's `classifier` serializes as an explicit JSON `null`; the fleet's
   `undefined`-over-`null` preference stops at the wire.
   [`contract`](docs/agents.md/repo/contract.md)
+- 🚨 The conformance oracle diffs emitted facts against the BUILD's own report, never a golden file — a golden file agrees with itself forever; `extra` is tolerated (one configuration vs. all), `missing` / `version-mismatch` / a missing edge never is. [`ground-truth-oracle`](docs/agents.md/repo/ground-truth-oracle.md)
+- 🚨 No static fallback, anywhere — a build tool that cannot run is a LOUD failure; a static parse of a dynamically-versioned build returns a plausible answer, which is how the divergence goes unnoticed. [`ground-truth-oracle`](docs/agents.md/repo/ground-truth-oracle.md)
+- 🚨 The dependency runs sdxgen → facts, never the reverse; port a shape from sdxgen, never a dependency, and never its optional-execution posture. [`ground-truth-oracle`](docs/agents.md/repo/ground-truth-oracle.md)
+- Keep component identity purl-shaped and the edge list `id`-addressable so a CycloneDX conversion is comfortable — but the converter is sdxgen's, not ours. [`ground-truth-oracle`](docs/agents.md/repo/ground-truth-oracle.md)
 - 🚨 A published install missing `emitters/maven-extension/socket-facts-maven-extension.jar`
   throws — Maven with no extension emits an empty SBOM, which reads as "no
   dependencies" rather than as a failure. (`scripts/repo/check/emitter-assets-are-publishable.mts`)
