@@ -1,3 +1,4 @@
+// socket-lint: mirror-exempt — a conformance suite over the Maven EMITTER, not over a TypeScript module; renaming it to run-facts-generation would hide which fixture it drives.
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
