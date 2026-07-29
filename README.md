@@ -32,7 +32,17 @@ time, against the developer's real build**. A resolver that reads a cache or
 parses a manifest statically passes a literal-version fixture and diverges on a
 real project, so the conformance suite is built out of selectors — a wildcard, a
 bounded range, a SNAPSHOT, and a project version generated per run — whose
-answers appear in no committed file.
+answers appear in no committed file, and it diffs what this package emitted
+against what the build tool itself reports resolving. There is no static
+fallback: a build tool that cannot run is a loud failure, never a degraded
+success.
+
+[sdxgen](https://github.com/SocketDev/sdxgen) is the other intended consumer,
+and the dependency runs **sdxgen → facts**: its JVM lane converts these facts to
+CycloneDX, which lets it drop its own duplicated Gradle init script and replace
+best-effort sbt regex parsing with real plugin-driven resolution. Component
+identity here is purl-shaped and the edge list is addressable so that conversion
+is comfortable, but the converter belongs on sdxgen's side, not this one.
 
 ## Install
 
@@ -72,6 +82,22 @@ import {
 // Throws with what / where / saw-vs-wanted / fix, including on an additive
 // field, which a strict consumer rejects wholesale.
 const sidecar = assertResolvedPathsSidecar(payload, 'reachability sidecar read')
+```
+
+Verify emitted facts against the build's own answer:
+
+```js
+import {
+  compareFactsToGroundTruth,
+  conformanceViolations,
+  parseGradleDependencyTree,
+} from '@socketsecurity/facts/conformance'
+
+// `gradle dependencies --configuration runtimeClasspath` output.
+const truth = parseGradleDependencyTree(report)
+const divergence = conformanceViolations(
+  compareFactsToGroundTruth(facts, truth),
+)
 ```
 
 Resolve the emitter assets rather than guessing where they live:
