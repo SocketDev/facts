@@ -18,5 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `@socketsecurity/facts/assets` — resolvers for the bundled Gradle init script,
   sbt plugin, and Maven extension jar, with a fail-closed check that a published
   install carrying no jar throws instead of emitting an empty SBOM.
-- A dynamically-versioned conformance fixture asserting the emitters report the
-  version the build resolved, which a cache read or a static parse cannot.
+- `@socketsecurity/facts/conformance` — parsers for a build tool's own
+  dependency report plus a diff that fails on any component, version, or edge
+  where the emitted facts and the build disagree.
+- A dynamically-versioned conformance fixture for Gradle and Maven, asserting
+  the emitters report what the build resolved rather than what the build file
+  says. A wildcard, a bounded range, a SNAPSHOT, and a per-run project version
+  make that unreachable by a cache read or a static parse.
+- A wall-clock ceiling on the build-tool spawn, overridable with
+  `SOCKET_FACTS_TIMEOUT_MS`.
