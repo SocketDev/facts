@@ -4,7 +4,13 @@ import path from 'node:path'
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import {
+  compareFactsToGroundTruth,
+  conformanceViolations,
+  renderConformanceReport,
+} from '../../../src/conformance/compare.mts'
 import { runFactsGeneration } from '../../../src/run/run-facts-generation.mts'
+import { captureMavenGroundTruth } from './lib/capture-ground-truth.mts'
 import {
   createMavenDynamicVersionWorkspace,
   MAVEN_DYNAMIC_VERSION_CASES,
@@ -17,6 +23,7 @@ import {
   skipReasonFor,
 } from './lib/toolchain.mts'
 
+import type { GroundTruthCapture } from './lib/capture-ground-truth.mts'
 import type { FactsGenerationResult } from '../../../src/run/result.mts'
 import type { MavenDynamicVersionWorkspace } from './lib/dynamic-version-workspace.mts'
 
@@ -53,6 +60,7 @@ describe('maven resolves what the build resolves', () => {
   const skipReason = skipReasonFor('maven')
   let workspace: MavenDynamicVersionWorkspace | undefined
   let result: FactsGenerationResult | undefined
+  let groundTruth: GroundTruthCapture | undefined
 
   beforeAll(async () => {
     if (skipReason) {
@@ -75,6 +83,13 @@ describe('maven resolves what the build resolves', () => {
       tool: 'maven',
       withFiles: true,
     })
+    groundTruth = await captureMavenGroundTruth(
+      findBuildToolBin('maven')!,
+      workspace.projectDir,
+      compatEnv(),
+      [`-Drevision=${workspace.computedProjectVersion}`],
+      path.join(workspace.projectDir, 'ground-truth.json'),
+    )
   }, 300_000)
 
   afterAll(async () => {
@@ -126,5 +141,35 @@ describe('maven resolves what the build resolves', () => {
     expect(result?.facts.projects?.[0]?.version).toBe(
       workspace?.computedProjectVersion,
     )
+  })
+
+  // The oracle: diff what this package emitted against what Maven itself says
+  // it resolved. Maven reports one scope tree while the facts cover every
+  // scope, so an extra component in the facts is expected — a missing one, a
+  // missing edge, or a version mismatch is the divergence.
+  it('diverges from the build in no component and no edge', ctx => {
+    if (skipReason) {
+      ctx.skip()
+      return
+    }
+    const comparison = compareFactsToGroundTruth(
+      result!.facts,
+      groundTruth!.truth,
+    )
+    const violations = conformanceViolations(comparison)
+    expect(violations, renderConformanceReport(comparison)).toEqual([])
+    expect(comparison.summary.matches).toBeGreaterThan(0)
+  })
+
+  it('has an oracle that names the resolved version, not the selector', ctx => {
+    if (skipReason) {
+      ctx.skip()
+      return
+    }
+    for (const entry of MAVEN_DYNAMIC_VERSION_CASES) {
+      expect(
+        groundTruth!.truth.components.get(`${entry.group}:${entry.name}`),
+      ).toBe(entry.resolves)
+    }
   })
 })

@@ -4,7 +4,13 @@ import path from 'node:path'
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import {
+  compareFactsToGroundTruth,
+  conformanceViolations,
+  renderConformanceReport,
+} from '../../../src/conformance/compare.mts'
 import { runFactsGeneration } from '../../../src/run/run-facts-generation.mts'
+import { captureGradleGroundTruth } from './lib/capture-ground-truth.mts'
 import {
   createDynamicVersionWorkspace,
   DYNAMIC_VERSION_CASES,
@@ -17,6 +23,7 @@ import {
   skipReasonFor,
 } from './lib/toolchain.mts'
 
+import type { GroundTruthCapture } from './lib/capture-ground-truth.mts'
 import type { FactsGenerationResult } from '../../../src/run/result.mts'
 import type { DynamicVersionWorkspace } from './lib/dynamic-version-workspace.mts'
 
@@ -65,6 +72,7 @@ describe('gradle resolves what the build resolves', () => {
   const skipReason = skipReasonFor('gradle')
   let workspace: DynamicVersionWorkspace | undefined
   let result: FactsGenerationResult | undefined
+  let groundTruth: GroundTruthCapture | undefined
 
   beforeAll(async () => {
     if (skipReason) {
@@ -83,6 +91,13 @@ describe('gradle resolves what the build resolves', () => {
       tool: 'gradle',
       withFiles: true,
     })
+    groundTruth = await captureGradleGroundTruth(
+      findBuildToolBin('gradle')!,
+      workspace.projectDir,
+      compatEnv(),
+      ['--offline', '-g', workspace.gradleUserHome],
+      'runtimeClasspath',
+    )
   }, 300_000)
 
   afterAll(async () => {
@@ -134,5 +149,35 @@ describe('gradle resolves what the build resolves', () => {
     }
     const project = result?.facts.projects?.[0]
     expect(project?.version).toBe(workspace?.computedProjectVersion)
+  })
+
+  // The oracle: diff what this package emitted against what Gradle itself says
+  // it resolved. A ground-truth report covers one configuration and the facts
+  // cover every one, so an extra component in the facts is expected — a
+  // missing one, a missing edge, or a version mismatch is the divergence.
+  it('diverges from the build in no component and no edge', ctx => {
+    if (skipReason) {
+      ctx.skip()
+      return
+    }
+    const comparison = compareFactsToGroundTruth(
+      result!.facts,
+      groundTruth!.truth,
+    )
+    const violations = conformanceViolations(comparison)
+    expect(violations, renderConformanceReport(comparison)).toEqual([])
+    expect(comparison.summary.matches).toBeGreaterThan(0)
+  })
+
+  it('has an oracle that names the resolved version, not the selector', ctx => {
+    if (skipReason) {
+      ctx.skip()
+      return
+    }
+    for (const entry of DYNAMIC_VERSION_CASES) {
+      expect(
+        groundTruth!.truth.components.get(`${entry.group}:${entry.name}`),
+      ).toBe(entry.resolves)
+    }
   })
 })
