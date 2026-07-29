@@ -53,10 +53,22 @@ export const DYNAMIC_VERSION_CASES: readonly DynamicVersionCase[] = [
   },
 ]
 
+const COMPAT_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
+
 export const FIXTURE_SOURCE_DIR: string = path.join(
-  path.dirname(path.dirname(fileURLToPath(import.meta.url))),
+  COMPAT_DIR,
   'gradle-dynamic-version',
 )
+
+export const MAVEN_FIXTURE_SOURCE_DIR: string = path.join(
+  COMPAT_DIR,
+  'maven-dynamic-version',
+)
+
+// Maven has no wildcard selector, so the wildcard case is Gradle-only. The
+// range and the SNAPSHOT apply to both.
+export const MAVEN_DYNAMIC_VERSION_CASES: readonly DynamicVersionCase[] =
+  DYNAMIC_VERSION_CASES.filter(entry => !entry.selector.includes('+'))
 
 export const COMPUTED_VERSION_FILENAME = 'computed-version.txt'
 
@@ -212,6 +224,53 @@ export async function createDynamicVersionWorkspace(): Promise<DynamicVersionWor
     computedProjectVersion,
     gradleUserHome: path.join(root, 'gradle-home'),
     projectDir,
+    cleanup: async () => {
+      await fs.rm(root, { force: true, recursive: true })
+    },
+  }
+}
+
+export type MavenDynamicVersionWorkspace = {
+  projectDir: string
+  localRepositoryDir: string
+  settingsFile: string
+  computedProjectVersion: string
+  cleanup: () => Promise<void>
+}
+
+// Mirrors Central to an unreachable URL so the fixture cannot silently resolve
+// a real artifact: everything it reports has to have come from the generated
+// repository, which is the whole point of the assertion.
+function offlineSettingsXml(): string {
+  return [
+    '<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">',
+    '  <mirrors>',
+    '    <mirror>',
+    '      <id>socket-facts-no-network</id>',
+    '      <name>the conformance fixture resolves offline</name>',
+    '      <url>file:///dev/null/socket-facts-unreachable</url>',
+    '      <mirrorOf>central</mirrorOf>',
+    '    </mirror>',
+    '  </mirrors>',
+    '</settings>',
+    '',
+  ].join('\n')
+}
+
+export async function createMavenDynamicVersionWorkspace(): Promise<MavenDynamicVersionWorkspace> {
+  const root = await fs.mkdtemp(
+    path.join(os.tmpdir(), 'socket-facts-mvn-dynver-'),
+  )
+  const projectDir = path.join(root, 'project')
+  await fs.cp(MAVEN_FIXTURE_SOURCE_DIR, projectDir, { recursive: true })
+  await publishLocalRepo(path.join(projectDir, 'localrepo'))
+  const settingsFile = path.join(root, 'settings.xml')
+  await fs.writeFile(settingsFile, offlineSettingsXml())
+  return {
+    computedProjectVersion: `0.0.0-resolved-${Date.now()}`,
+    localRepositoryDir: path.join(root, 'm2'),
+    projectDir,
+    settingsFile,
     cleanup: async () => {
       await fs.rm(root, { force: true, recursive: true })
     },
