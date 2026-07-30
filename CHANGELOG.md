@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`conformance`** — add the ground-truth oracle and a build-tool timeout
+- **`run`** — add the generation api, asset resolver, and build pipeline
+- **`pipeline`** — add the records parser, sbom assembler, and resolution report
+- **`contract`** — add the socket-facts sbom and sidecar wire contracts
+- **`emitters`** — add the gradle, sbt, and maven socket-facts emitters
+
 ## Unreleased
 
 ### Added
