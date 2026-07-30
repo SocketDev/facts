@@ -20,6 +20,31 @@ consumer could import in place of both: the same field names and the same
 optionality, plus runtime validators and a coordinate-key helper the consumer
 already reimplements.
 
+## An absent coordinate is an accelerator miss, not a downgrade
+
+When a coordinate is missing from the sidecar, the consumer does not skip it and
+does not downgrade its vulnerabilities to a precomputed result. It resolves the
+coordinate itself, best-effort: local caches first, then
+`mvn -Dtransitive=false dependency:get`, then HTTP. The fallback lives in
+`coana-package-manager/packages/reachability-analyzers/src/whole-program-code-aware-vulnerability-scanner/java/java-code-aware-vulnerability-scanner.ts:807-826`,
+calling the `resolveArtifact` helper at line 710 of the same file.
+
+The history is worth knowing, because the short-lived behavior is the one people
+remember. Coana's #2292 (`548637bbc`, 2026-06-30) landed the sidecar consumer
+with a hard short-circuit — uncovered meant unresolved. #2295 (`5d3056a1b`,
+2026-07-01) relaxed it the next day, because reachability is not scoped per
+project yet, so a scan legitimately carries artifacts from subprojects outside
+the sidecar's build root. The pinned 15.9.5 contains the relaxed behavior.
+
+The consequence is the load-bearing part. **The sidecar is an accelerator, not an
+authority.** A gap does not fail the scan and does not narrow it — it silently
+hands that coordinate back to the reach-time resolution the sidecar design
+(#1385) set out to eliminate, with that path's latency, its network dependency,
+and its lower success rate. So a coverage gap is a correctness and performance
+concern worth surfacing, not a benign fallback. Nothing in the wire format
+signals the miss; the only evidence is a `resolvedSource` other than `sidecar` /
+`sidecar-no-artifact` in the consumer's debug log.
+
 ## `classifier` serializes as an explicit JSON null
 
 The fleet prefers `undefined` over `null` everywhere except here. The sidecar's
