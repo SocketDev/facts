@@ -1,6 +1,6 @@
 {
   "name": "@socketsecurity/facts",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Generation of .socket.facts.json and the wire contracts around it",
   "license": "MIT",
   "files": [
