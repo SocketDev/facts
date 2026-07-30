@@ -1,0 +1,7 @@
+{
+  "$schema": "../fleet/lockstep.schema.json",
+  "area": "facts",
+  "description": "Lock-step manifest for the contracts this package is one half of. `.socket.facts.json` and the resolved-paths sidecar are wire formats a second implementation parses, so a shape change here is a coordinated release with that consumer, not a local edit.",
+  "upstreams": {},
+  "rows": []
+}

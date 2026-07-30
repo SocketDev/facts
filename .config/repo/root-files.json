@@ -1,0 +1,5 @@
+{
+  "allow": {
+    "emitters": "The three build-tool emitters that ship as package data — a Gradle init script, an sbt plugin, and a Maven core extension. A build tool reads them off disk by absolute path, `src/assets.mts` resolves them relative to the package root, and `files` ships them, so the location is tool-anchored rather than a choice. Paired with scripts/repo/check/emitter-assets-are-publishable.mts."
+  }
+}

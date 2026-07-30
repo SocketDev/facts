@@ -1,0 +1,124 @@
+export {
+  assertMavenExtensionBuilt,
+  EMITTERS_DIR,
+  emitterAssetPath,
+  GRADLE_INIT_SCRIPT_FILENAME,
+  gradleInitScriptPath,
+  MAVEN_EXTENSION_DIR,
+  MAVEN_EXTENSION_JAR_FILENAME,
+  mavenExtensionJarPath,
+  SBT_PLUGIN_FILENAME,
+  SBT_PLUGIN_SOURCE_FILENAME,
+  sbtPluginSourcePath,
+} from './assets.mts'
+export { mavenCoordinateKey } from './contract/coordinate.mts'
+export { SOCKET_FACTS_SBOM_FORMAT } from './contract/sbom.mts'
+export type {
+  AnyPURL,
+  SocketFactsSbom,
+  SocketFactsSbomComponent,
+  SocketFactsSbomMetadata,
+  SocketFactsSbomProject,
+  SocketFactsTool,
+} from './contract/sbom.mts'
+export type {
+  ResolvedArtifactPaths,
+  ResolvedComponent,
+  ResolvedPathsSidecar,
+} from './contract/sidecar.mts'
+export {
+  assertSocketFactsSbom,
+  SOCKET_FACTS_TOOLS,
+  validateSocketFactsSbom,
+} from './contract/validate-sbom.mts'
+export {
+  assertResolvedPathsSidecar,
+  RESOLVED_COMPONENT_FIELDS,
+  validateResolvedPathsSidecar,
+} from './contract/validate-sidecar.mts'
+export type {
+  ContractValidation,
+  ContractViolation,
+} from './contract/violations.mts'
+export {
+  compareFactsToGroundTruth,
+  conformanceViolations,
+  renderConformanceReport,
+} from './conformance/compare.mts'
+export type {
+  ComponentDiff,
+  ComponentVerdict,
+  ConformanceComparison,
+  EdgeDiff,
+} from './conformance/compare.mts'
+export {
+  createGroundTruth,
+  groundTruthKey,
+  parseGradleDependencyRow,
+  parseGradleDependencyTree,
+} from './conformance/ground-truth.mts'
+export type { GradleRow, GroundTruth } from './conformance/ground-truth.mts'
+export {
+  isMavenTreeNode,
+  parseMavenDependencyTreeJson,
+} from './conformance/maven-tree.mts'
+export type { MavenTreeNode } from './conformance/maven-tree.mts'
+export { assembleFacts } from './pipeline/assemble.mts'
+export type { AssembleOptions, AssembleResult } from './pipeline/assemble.mts'
+export { parseRecords, unescapeField } from './pipeline/records.mts'
+export type {
+  ParsedRecords,
+  RawCoord,
+  RawNode,
+  RawProject,
+  RawRoot,
+} from './pipeline/records.mts'
+export {
+  accumulateSidecar,
+  createSidecarAccumulator,
+  serializeSidecar,
+} from './pipeline/sidecar.mts'
+export type { SidecarAccumulator } from './pipeline/sidecar.mts'
+export { classifyGradleFailure, GRADLE_DIALECT } from './report/gradle.mts'
+export { classifyIvyFailure, SBT_DIALECT } from './report/ivy.mts'
+export { classifyMavenFailure, MAVEN_DIALECT } from './report/maven.mts'
+export {
+  renderResolutionErrorReport,
+  renderResolutionReport,
+} from './report/render.mts'
+export type {
+  FailureCategory,
+  FailureCategorySpec,
+  RenderedResolutionReport,
+  ResolutionDialect,
+} from './report/render.mts'
+export type {
+  ResolutionFailure,
+  ResolutionReport,
+  UnscannableConfig,
+} from './report/report-types.mts'
+export {
+  BUILD_TOOLS,
+  buildToolWrapperFilename,
+  buildToolWrapperPath,
+  conventionalBuildToolBin,
+  isBuildTool,
+} from './run/build-tool.mts'
+export type { BuildTool } from './run/build-tool.mts'
+export {
+  applyBuildEnvPolicy,
+  BUILD_TOOL_ARGUMENT_ENV_VARS,
+  scrubBuildToolEnv,
+} from './run/env.mts'
+export type { BuildEnvPolicy } from './run/env.mts'
+export { assertFactsInvocation } from './run/invocation.mts'
+export type { FactsInvocation } from './run/invocation.mts'
+export type { FactsGenerationResult } from './run/result.mts'
+export { runFactsGeneration } from './run/run-facts-generation.mts'
+export {
+  DEFAULT_FACTS_GENERATION_TIMEOUT_MS,
+  FACTS_GENERATION_TIMEOUT_ENV_VAR,
+  factsGenerationTimeoutMs,
+  parseTimeoutMs,
+} from './run/timeouts.mts'
+export type { FactsGenerationOptions } from './run/run-facts-generation.mts'
