@@ -127,6 +127,8 @@ npm-debug.log
 pnpm-debug.log
 *.tgz
 # </fleet>
+# <repo>
+# </repo>
 
 # Maven core-extension build output. `pnpm run build:maven-extension` compiles
 # the sources under emitters/maven-extension/src into the jar the published

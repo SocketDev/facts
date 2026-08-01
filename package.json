@@ -75,7 +75,8 @@
     "update": "node scripts/fleet/update.mts",
     "weekly-update": "node scripts/fleet/weekly-update.mts",
     "weekly-update:ci": "node scripts/fleet/weekly-update-workflow.mts run",
-    "setup:sfw-ca": "node scripts/fleet/setup/sfw-ca.mts"
+    "setup:sfw-ca": "node scripts/fleet/setup/sfw-ca.mts",
+    "get-green": "node scripts/fleet/get-green.mts"
   },
   "dependencies": {
     "@socketsecurity/lib": "catalog:"
