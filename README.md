@@ -8,8 +8,6 @@
 
 Generation of `.socket.facts.json` and the wire contracts around it.
 
-## Why this repo exists
-
 Generation of `.socket.facts.json` for JVM projects has crossed the same
 ownership boundary twice: socket-cli delegated it to a reachability partner in
 June 2026 and reversed the delegation 26 days later, because the partner
