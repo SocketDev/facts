@@ -16,9 +16,16 @@ export * from '../fleet/paths.mts'
 export const EMITTERS_DIR = path.join(REPO_ROOT, 'emitters')
 
 /**
- * Maven core-extension sources plus the wrapper that builds them.
+ * Maven core-extension sources.
  */
 export const MAVEN_EXTENSION_DIR = path.join(EMITTERS_DIR, 'maven-extension')
+
+/**
+ * The pinned Maven wrapper that builds the core extension. It lives at the repo
+ * root rather than beside the pom because its `.mvn/` config directory is a
+ * dot-path, and everything under `emitters/` reaches the published tarball.
+ */
+export const MAVEN_WRAPPER = path.join(REPO_ROOT, 'mvnw')
 
 /**
  * Built jar, at the path `src/assets.mts` resolves at runtime.

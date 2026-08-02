@@ -22,10 +22,18 @@ describe('emitter asset resolution', () => {
     expect(existsSync(sbtPluginSourcePath())).toBe(true)
   })
 
-  it('ships the Maven extension sources and its wrapper', () => {
+  it('ships the Maven extension sources', () => {
     const extensionDir = path.join(EMITTERS_DIR, 'maven-extension')
     expect(existsSync(path.join(extensionDir, 'pom.xml'))).toBe(true)
-    expect(existsSync(path.join(extensionDir, 'mvnw'))).toBe(true)
+  })
+
+  // The wrapper's `.mvn/` config is a dot-path, and every dot-path under
+  // `emitters/` would reach the published tarball, so the wrapper builds the
+  // extension from the repo root instead.
+  it('keeps the Maven wrapper out of the published emitters tree', () => {
+    const extensionDir = path.join(EMITTERS_DIR, 'maven-extension')
+    expect(existsSync(path.join(extensionDir, 'mvnw'))).toBe(false)
+    expect(existsSync(path.join(extensionDir, '.mvn'))).toBe(false)
   })
 
   it('routes each tool to its own asset', () => {

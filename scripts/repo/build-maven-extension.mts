@@ -1,7 +1,8 @@
 /*
  * @file Compile the Maven core extension to a self-contained jar and place it
- *   where `src/assets.mts` resolves it. Uses the bundled Maven wrapper, so a
- *   JDK is the only prerequisite.
+ *   where `src/assets.mts` resolves it. Uses the repo-root Maven wrapper, so a
+ *   JDK is the only prerequisite. The wrapper runs with the extension directory
+ *   as its cwd and finds its own `.mvn/` config by walking up to the repo root.
  *
  *   Usage: pnpm run build:maven-extension
  */
@@ -14,11 +15,13 @@ import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { MAVEN_EXTENSION_DIR, MAVEN_EXTENSION_JAR } from './paths.mts'
+import {
+  MAVEN_EXTENSION_DIR,
+  MAVEN_EXTENSION_JAR,
+  MAVEN_WRAPPER,
+} from './paths.mts'
 
 const logger = getDefaultLogger()
-
-export const MAVEN_WRAPPER = path.join(MAVEN_EXTENSION_DIR, 'mvnw')
 
 export const SHADED_JAR = path.join(
   MAVEN_EXTENSION_DIR,

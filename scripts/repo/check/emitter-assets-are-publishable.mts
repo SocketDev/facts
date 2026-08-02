@@ -30,6 +30,7 @@ import {
   EMITTERS_DIR,
   MAVEN_EXTENSION_DIR,
   MAVEN_EXTENSION_JAR,
+  MAVEN_WRAPPER,
   REPO_ROOT,
 } from '../paths.mts'
 
@@ -38,8 +39,8 @@ const logger = getDefaultLogger()
 export const REQUIRED_EMITTER_FILES: readonly string[] = [
   path.join(EMITTERS_DIR, 'socket-facts.init.gradle'),
   path.join(EMITTERS_DIR, 'socket-facts.plugin.scala'),
-  path.join(MAVEN_EXTENSION_DIR, 'mvnw'),
   path.join(MAVEN_EXTENSION_DIR, 'pom.xml'),
+  MAVEN_WRAPPER,
 ]
 
 export const EMITTERS_FILES_ENTRY = 'emitters/**/*'
