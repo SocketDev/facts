@@ -101,7 +101,6 @@ minimumReleaseAgeExclude:
   - 'sdxgen'
   - 'sfw'
   - 'socket'
-  - 'stuie'
 
 allowBuilds:
   cpu-features: false
