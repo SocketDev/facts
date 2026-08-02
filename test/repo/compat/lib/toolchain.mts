@@ -2,6 +2,8 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 
+import { emitterAssetPath } from '../../../../src/assets.mts'
+
 import type { BuildTool } from '../../../../src/run/build-tool.mts'
 
 // Set to a truthy value where the conformance matrix MUST run — a machine with
@@ -20,6 +22,16 @@ const BIN_NAME: Readonly<Record<BuildTool, string>> = Object.freeze({
   gradle: 'gradle',
   maven: 'mvn',
   sbt: 'sbt',
+})
+
+// How an absent emitter asset gets repaired. The gradle init script and the sbt
+// plugin source are committed, so an absent one is a broken checkout. The Maven
+// extension is a jar that a JDK has to build, which `pnpm run build`
+// deliberately does not do — a plain checkout carries no JDK obligation.
+const ASSET_FIX: Readonly<Record<BuildTool, string>> = Object.freeze({
+  gradle: 'restore the committed emitter source',
+  maven: 'run `pnpm run build:maven-extension` (needs a JDK)',
+  sbt: 'restore the committed emitter source',
 })
 
 export function compatIsRequired(): boolean {
@@ -69,17 +81,36 @@ export function compatEnv(): NodeJS.ProcessEnv {
 }
 
 // Loud, not silent. A skipped conformance run prints why it skipped and what to
-// install, and under REQUIRE_COMPAT it throws instead.
+// install, and under REQUIRE_COMPAT it throws instead. Two preconditions, both
+// announced the same way: the build tool itself, and the emitter asset this
+// package hands that build.
 export function skipReasonFor(tool: BuildTool): string | undefined {
-  const bin = findBuildToolBin(tool)
-  if (bin) {
+  if (!findBuildToolBin(tool)) {
+    return (
+      `No ${BIN_NAME[tool]} on PATH. ` +
+      `Where: the ${tool} dynamic-version conformance fixture. ` +
+      `Saw no executable, wanted a ${tool} install plus a JDK. ` +
+      `Fix: install ${tool}, or point ${BIN_ENV_VAR[tool]} at its binary. ` +
+      `Set ${REQUIRE_COMPAT_ENV_VAR}=1 to turn this skip into a failure.`
+    )
+  }
+  return emitterAssetSkipReason(tool, emitterAssetPath(tool))
+}
+
+// The second precondition, split out so it is testable without a checkout that
+// happens to be missing the jar.
+export function emitterAssetSkipReason(
+  tool: BuildTool,
+  assetPath: string,
+): string | undefined {
+  if (existsSync(assetPath)) {
     return undefined
   }
   return (
-    `No ${BIN_NAME[tool]} on PATH. ` +
-    `Where: the ${tool} dynamic-version conformance fixture. ` +
-    `Saw no executable, wanted a ${tool} install plus a JDK. ` +
-    `Fix: install ${tool}, or point ${BIN_ENV_VAR[tool]} at its binary. ` +
+    `No ${tool} emitter asset. ` +
+    `Where: ${assetPath}. ` +
+    `Saw no file, wanted the emitter this package hands the build. ` +
+    `Fix: ${ASSET_FIX[tool]}. ` +
     `Set ${REQUIRE_COMPAT_ENV_VAR}=1 to turn this skip into a failure.`
   )
 }

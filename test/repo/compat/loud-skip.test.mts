@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   compatEnv,
+  emitterAssetSkipReason,
   enforceOrAnnounceSkip,
   findBuildToolBin,
   REQUIRE_COMPAT_ENV_VAR,
@@ -17,6 +18,8 @@ import {
 // assertions it guards.
 
 const MISSING_GRADLE = '/socket-facts/definitely/not/a/gradle'
+
+const MISSING_ASSET = '/socket-facts/definitely/not/an/emitter-asset'
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -46,6 +49,36 @@ describe('skipReasonFor', () => {
     expect(reason).toContain('Saw no executable, wanted')
     expect(reason).toContain('Fix: install gradle')
     expect(reason).toContain(REQUIRE_COMPAT_ENV_VAR)
+  })
+
+  it('passes both preconditions on a checkout that has the tool and the asset', () => {
+    vi.stubEnv('SOCKET_FACTS_MAVEN_BIN', '')
+    vi.stubEnv('PATH', '')
+    expect(skipReasonFor('maven')).toContain('No mvn on PATH')
+  })
+})
+
+// The Maven emitter is a jar a JDK has to build, and `pnpm run build` does not
+// build it. Without this second precondition the suite finds `mvn`, starts the
+// run, and dies inside beforeAll on the missing jar — a hard failure where a
+// loud skip is the honest answer.
+describe('emitterAssetSkipReason', () => {
+  it('says which asset is missing and how to produce it', () => {
+    const reason = emitterAssetSkipReason('maven', MISSING_ASSET)
+    expect(reason).toBeDefined()
+    expect(reason).toContain('No maven emitter asset')
+    expect(reason).toContain(MISSING_ASSET)
+    expect(reason).toContain('Fix: run `pnpm run build:maven-extension`')
+    expect(reason).toContain(REQUIRE_COMPAT_ENV_VAR)
+  })
+
+  it('points a broken checkout at the committed source, not at a build', () => {
+    const reason = emitterAssetSkipReason('gradle', MISSING_ASSET)
+    expect(reason).toContain('Fix: restore the committed emitter source')
+  })
+
+  it('is silent when the asset is there', () => {
+    expect(emitterAssetSkipReason('gradle', process.execPath)).toBeUndefined()
   })
 })
 
