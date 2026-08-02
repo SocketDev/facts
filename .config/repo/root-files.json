@@ -1,5 +1,8 @@
 {
   "allow": {
-    "emitters": "The three build-tool emitters that ship as package data — a Gradle init script, an sbt plugin, and a Maven core extension. A build tool reads them off disk by absolute path, `src/assets.mts` resolves them relative to the package root, and `files` ships them, so the location is tool-anchored rather than a choice. Paired with scripts/repo/check/emitter-assets-are-publishable.mts."
+    ".mvn": "The pinned Maven wrapper's distribution config. The wrapper finds it by walking up from its working directory, so it has to sit at the root of the tree the build runs in and cannot move into a tier directory. It stays out of emitters/ because everything under that directory reaches the published tarball, and a dot-path there fails scripts/fleet/check/pack-contents-are-clean.mts.",
+    "emitters": "The three build-tool emitters that ship as package data — a Gradle init script, an sbt plugin, and a Maven core extension. A build tool reads them off disk by absolute path, `src/assets.mts` resolves them relative to the package root, and `files` ships them, so the location is tool-anchored rather than a choice. Paired with scripts/repo/check/emitter-assets-are-publishable.mts.",
+    "mvnw": "The pinned Maven wrapper that builds the core-extension jar, run by scripts/repo/build-maven-extension.mts. Maven's own convention anchors the script beside its `.mvn` config directory, and the pin is what keeps the jar reproducible across machines.",
+    "mvnw.cmd": "The Windows half of the pinned Maven wrapper. Maven ships the two scripts as a pair and the wrapper is incomplete without it."
   }
 }
