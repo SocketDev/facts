@@ -6,8 +6,7 @@
   "files": [
     "CHANGELOG.md",
     "dist/**/*",
-    "emitters/**/*",
-    "!emitters/maven-extension/.mvn"
+    "emitters/**/*"
   ],
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -76,7 +75,8 @@
     "update": "node scripts/fleet/update.mts",
     "weekly-update": "node scripts/fleet/weekly-update.mts",
     "setup:sfw-ca": "node scripts/fleet/setup/sfw-ca.mts",
-    "get-green": "node scripts/fleet/get-green.mts"
+    "get-green": "node scripts/fleet/get-green.mts",
+    "weekly-update:ci": "gh workflow run weekly-update.lock.yml"
   },
   "dependencies": {
     "@socketsecurity/lib": "catalog:"
