@@ -51,13 +51,13 @@ export function addEntry(
   ext: string,
   classifier: string | null,
 ): void {
-  const coordKey = mavenCoordinateKey(
-    group,
-    name,
-    ext || undefined,
-    classifier ?? undefined,
-    version || undefined,
-  )
+  const coordKey = mavenCoordinateKey({
+    groupId: group,
+    artifactId: name,
+    type: ext || undefined,
+    classifier: classifier ?? undefined,
+    version: version || undefined,
+  })
   if (!coordKey) {
     return
   }
