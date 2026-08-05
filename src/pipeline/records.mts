@@ -76,7 +76,12 @@ export function parseRecords(text: string): ParsedRecords {
 
   const lines = text.split('\n')
   for (let i = 0, { length } = lines; i < length; i += 1) {
-    const rawLine = lines[i]!
+    // Tolerate CRLF. Splitting on '\n' alone would leave a '\r' glued to each
+    // record's LAST field, which is where the grammar puts prod/direct flags,
+    // edge targets, and artifact paths — every one of which fails silently
+    // rather than loudly. The emitters all write LF; this is the parser half
+    // of that guarantee, so one emitter regressing cannot corrupt a scan.
+    const rawLine = lines[i]!.replace(/\r$/, '')
     if (!rawLine) {
       continue
     }

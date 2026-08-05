@@ -65,6 +65,22 @@ consumer pinned to a version released before the addition.
 key is a violation here, so a producer cannot emit a payload the consumer will
 reject.
 
+### `ecosystem` is the one field added under that rule
+
+`ResolvedComponent.ecosystem` carries the artifact's purl type, because a
+groupless NuGet id and a Maven artifactId can produce the same coordinate key
+and there is no other way to tell them apart. Adding it follows the rule above
+rather than escaping it: **every** reachability scan, single-ecosystem JVM ones
+included, fails at the sidecar handoff until the consumer's schema accepts the
+key, because the producer stamps the tag on every entry and a `.strict()` parse
+rejects the whole payload rather than the one field. Releasing the consumer's
+schema change first is the gate on shipping a version of this package that
+emits it.
+
+The validator is asymmetric here on purpose: it accepts a payload with no
+`ecosystem` key, because that is exactly what a sidecar written before the tag
+existed looks like, and it means `maven`. Strict producer, liberal consumer.
+
 ### Proposed versioning approach — not adopted
 
 Recorded here so the next person does not have to rederive it. **Do not

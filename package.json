@@ -40,6 +40,7 @@
   },
   "scripts": {
     "build": "node scripts/repo/build.mts",
+    "build:dotnet-tool": "node scripts/repo/build-dotnet-tool.mts",
     "build:maven-extension": "node scripts/repo/build-maven-extension.mts",
     "check": "node scripts/fleet/check.mts",
     "check:paths": "node scripts/fleet/check/paths-are-canonical.mts",

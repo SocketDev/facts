@@ -12,7 +12,7 @@ export type AnyPURL = {
 
 export const SOCKET_FACTS_SBOM_FORMAT = 'socket-facts-sbom'
 
-export type SocketFactsTool = 'gradle' | 'maven' | 'sbt'
+export type SocketFactsTool = 'dotnet' | 'gradle' | 'maven' | 'sbt'
 
 // No sources/targets here: those are local absolute paths, returned in-memory
 // as ResolvedArtifactPaths, never serialized into the SBOM.

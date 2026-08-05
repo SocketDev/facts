@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
+import { assembleFacts } from '../../../src/pipeline/assemble.mts'
+import { parseRecords } from '../../../src/pipeline/records.mts'
 import {
   accumulateSidecar,
+  createSidecarAccumulator,
   serializeSidecar,
 } from '../../../src/pipeline/sidecar.mts'
 
@@ -76,6 +79,7 @@ describe('compute-artifacts sidecar', () => {
         version: 'da517db',
         ext: 'jar',
         classifier: null,
+        ecosystem: 'maven',
         targets: ['/abs/lib.jar'],
         sources: ['/abs/lib/src/main/java'],
       },
@@ -158,6 +162,7 @@ describe('compute-artifacts sidecar', () => {
         version: '1.0',
         ext: '',
         classifier: null,
+        ecosystem: 'maven',
         targets: ['/abs/app/build/classes'],
         sources: ['/abs/app/src/main/java'],
       },
@@ -174,5 +179,53 @@ describe('compute-artifacts sidecar', () => {
 
     expect(resolved).toHaveLength(1)
     expect(resolved[0]!.targets).toEqual(['/root-a/a.jar', '/root-b/a.jar'])
+  })
+})
+
+// The dotnet emitter's records for one project that resolved two target
+// frameworks. NuGet coordinates are groupless, so the `group` field is empty
+// throughout — that is what makes the namespace and accumulator-key handling
+// load-bearing rather than cosmetic.
+const DOTNET_RECORDS = [
+  'meta\tdotnet\t8.0.404\t',
+  'project\t/repo/App/App.csproj\t\tApp\t1.0.0\tApp',
+  'projectSrc\t/repo/App/App.csproj\t/repo/App',
+  'projectTgt\t/repo/App/App.csproj\t/repo/App/bin/App.dll',
+  'root\tr-net8\t/repo/App/App.csproj\tnet8.0\t1',
+  'node\tr-net8\tNewtonsoft.Json:13.0.3\t\tNewtonsoft.Json\t13.0.3\t\t\t1',
+  'file\tr-net8\tNewtonsoft.Json:13.0.3\t/cache/newtonsoft.json/13.0.3/lib/net6.0/Newtonsoft.Json.dll',
+  'root\tr-net6\t/repo/App/App.csproj\tnet6.0\t1',
+  'node\tr-net6\tNewtonsoft.Json:13.0.3\t\tNewtonsoft.Json\t13.0.3\t\t\t1',
+  'scanned\tnet8.0',
+  'scanned\tnet6.0',
+].join('\n')
+
+describe('sidecar ecosystem tagging', () => {
+  it('keeps a nuget coordinate separate from a maven one of the same name', () => {
+    const acc = createSidecarAccumulator()
+    const dotnet = assembleFacts(parseRecords(DOTNET_RECORDS), {
+      fileExists: () => true,
+    })
+    accumulateSidecar(acc, dotnet.facts, dotnet.artifactPaths)
+
+    // A groupless NuGet id and a Maven artifactId can produce the same
+    // coordinate key; only the ecosystem tag keeps them apart.
+    const maven = assembleFacts(
+      parseRecords(
+        [
+          'meta\tmaven\t3.9.6\t17',
+          'root\tr1\t:app\tcompile\t1',
+          'node\tr1\tNewtonsoft.Json:13.0.3\t\tNewtonsoft.Json\t13.0.3\t\t\t1',
+        ].join('\n'),
+      ),
+      { fileExists: () => true },
+    )
+    accumulateSidecar(acc, maven.facts, maven.artifactPaths)
+
+    const ecosystems = serializeSidecar(acc)
+      .filter(e => e.name === 'Newtonsoft.Json')
+      .map(e => e.ecosystem)
+      .toSorted()
+    expect(ecosystems).toStrictEqual(['maven', 'nuget'])
   })
 })

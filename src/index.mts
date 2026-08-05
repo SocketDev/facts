@@ -1,5 +1,10 @@
 export {
+  assertDotnetToolBuilt,
   assertMavenExtensionBuilt,
+  DOTNET_TOOL_DIR,
+  DOTNET_TOOL_DLL_FILENAME,
+  DOTNET_TOOL_PUBLISH_DIR,
+  dotnetToolDllPath,
   EMITTERS_DIR,
   emitterAssetPath,
   GRADLE_INIT_SCRIPT_FILENAME,
@@ -63,7 +68,17 @@ export {
   parseMavenDependencyTreeJson,
 } from './conformance/maven-tree.mts'
 export type { MavenTreeNode } from './conformance/maven-tree.mts'
-export { assembleFacts } from './pipeline/assemble.mts'
+export {
+  buildArtifactPaths,
+  gav,
+  unionInto,
+} from './pipeline/artifact-paths.mts'
+export {
+  assembleFacts,
+  buildConfigsByProject,
+  namespaceEntry,
+  purlTypeForTool,
+} from './pipeline/assemble.mts'
 export type { AssembleOptions, AssembleResult } from './pipeline/assemble.mts'
 export { parseRecords, unescapeField } from './pipeline/records.mts'
 export type {
@@ -82,7 +97,10 @@ export type { SidecarAccumulator } from './pipeline/sidecar.mts'
 export { classifyGradleFailure, GRADLE_DIALECT } from './report/gradle.mts'
 export { classifyIvyFailure, SBT_DIALECT } from './report/ivy.mts'
 export { classifyMavenFailure, MAVEN_DIALECT } from './report/maven.mts'
+export { classifyNugetFailure, NUGET_DIALECT } from './report/nuget.mts'
 export {
+  DEFAULT_CONFIG_NOUN,
+  DEFAULT_EXCLUDE_CONFIGS_OPTION,
   renderResolutionErrorReport,
   renderResolutionReport,
 } from './report/render.mts'
@@ -105,6 +123,14 @@ export {
   isBuildTool,
 } from './run/build-tool.mts'
 export type { BuildTool } from './run/build-tool.mts'
+export {
+  compileConfigPatterns,
+  createConfigGlobFilter,
+  globToRegexSource,
+  literalRegexSource,
+  serializeConfigPatterns,
+} from './run/config-glob.mts'
+export type { ConfigGlobFilter } from './run/config-glob.mts'
 export {
   applyBuildEnvPolicy,
   BUILD_TOOL_ARGUMENT_ENV_VARS,

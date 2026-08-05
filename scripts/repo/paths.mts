@@ -36,6 +36,34 @@ export const MAVEN_EXTENSION_JAR = path.join(
 )
 
 /**
+ * NuGet emitter sources: a self-contained C# tool run through `dotnet`.
+ */
+export const DOTNET_TOOL_DIR = path.join(EMITTERS_DIR, 'dotnet-tool')
+
+/**
+ * The C# project file `pnpm run build:dotnet-tool` publishes.
+ */
+export const DOTNET_TOOL_PROJECT = path.join(
+  DOTNET_TOOL_DIR,
+  'socket-facts-dotnet.csproj',
+)
+
+/**
+ * Published tool directory, at the path `src/assets.mts` resolves at runtime.
+ * `dotnet publish` emits an assembly plus its runtime config, so the unit that
+ * ships is a directory rather than a single file.
+ */
+export const DOTNET_TOOL_PUBLISH_DIR = path.join(DOTNET_TOOL_DIR, 'publish')
+
+/**
+ * Entry assembly inside the published tool directory.
+ */
+export const DOTNET_TOOL_DLL = path.join(
+  DOTNET_TOOL_PUBLISH_DIR,
+  'socket-facts-dotnet.dll',
+)
+
+/**
  * The generation API and the wire contracts.
  */
 export const SRC_DIR = path.join(REPO_ROOT, 'src')

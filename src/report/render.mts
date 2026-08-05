@@ -1,6 +1,7 @@
 import { GRADLE_DIALECT } from './gradle.mts'
 import { SBT_DIALECT } from './ivy.mts'
 import { MAVEN_DIALECT } from './maven.mts'
+import { NUGET_DIALECT } from './nuget.mts'
 
 import type { BuildTool } from '../run/build-tool.mts'
 import type { ResolutionFailure, UnscannableConfig } from './report-types.mts'
@@ -34,7 +35,16 @@ export type ResolutionDialect = {
   label: string
   classify: (detail: string) => FailureCategory
   categories: FailureCategorySpec[]
+  // What this ecosystem calls a "config", and the caller-facing option name
+  // that narrows the set. NuGet resolves per target framework, so the JVM
+  // wording would tell a .NET user to pass an option that does not exist.
+  configNoun?: string | undefined
+  excludeConfigsOption?: string | undefined
 }
+
+export const DEFAULT_CONFIG_NOUN = 'configuration'
+
+export const DEFAULT_EXCLUDE_CONFIGS_OPTION = '--exclude-configs'
 
 export type RenderedResolutionReport = {
   // Failure report for blocking kinds; empty when nothing blocks.
@@ -68,6 +78,8 @@ export function dedupCoords(coords: Iterable<string>): string[] {
 
 export function dialectFor(tool: BuildTool): ResolutionDialect {
   switch (tool) {
+    case 'dotnet':
+      return NUGET_DIALECT
     case 'sbt':
       return SBT_DIALECT
     case 'maven':
@@ -122,6 +134,9 @@ export function renderResolutionReport(
   } = {},
 ): RenderedResolutionReport {
   const name = dialect.label
+  const noun = dialect.configNoun ?? DEFAULT_CONFIG_NOUN
+  const excludeOption =
+    dialect.excludeConfigsOption ?? DEFAULT_EXCLUDE_CONFIGS_OPTION
   const unscannable = opts.unscannable ?? []
   const unscannableConfigs = new Set(unscannable.map(u => u.config))
   const specOf = new Map(dialect.categories.map(c => [c.key, c]))
@@ -200,10 +215,15 @@ export function renderResolutionReport(
   const out: string[] = []
   if (hasBlockingFailures) {
     if (blockingCount > 0) {
+      // A failure with no config attribution — a restore-level error, say —
+      // would render as "in 0 …(s)". Drop the clause instead.
+      const inConfigs = perDepBlockingConfigs.size
+        ? ` in ${perDepBlockingConfigs.size} ${noun}(s)`
+        : ''
       out.push(
         opts.ignoreUnresolved
-          ? `Ignored ${blockingCount} unresolved dependency(ies) in ${perDepBlockingConfigs.size} configuration(s):`
-          : `Could not resolve ${blockingCount} dependency(ies) in ${perDepBlockingConfigs.size} configuration(s):`,
+          ? `Ignored ${blockingCount} unresolved dependency(ies)${inConfigs}:`
+          : `Could not resolve ${blockingCount} dependency(ies)${inConfigs}:`,
       )
       for (const { infos, spec } of blockingGroups) {
         out.push('')
@@ -230,8 +250,8 @@ export function renderResolutionReport(
       }
       out.push(
         opts.ignoreUnresolved
-          ? `Ignored ${blockingUnscannable.length} configuration(s) that could not be scanned:`
-          : `Could not scan ${blockingUnscannable.length} configuration(s) (reason from ${name}):`,
+          ? `Ignored ${blockingUnscannable.length} ${noun}(s) that could not be scanned:`
+          : `Could not scan ${blockingUnscannable.length} ${noun}(s) (reason from ${name}):`,
       )
       const shownUnscannable = blockingUnscannable.slice(
         0,
@@ -264,7 +284,7 @@ export function renderResolutionReport(
       out.push(`To proceed, re-run with either:`)
       out.push(`    --ignore-unresolved`)
       if (blockingFailed.length) {
-        out.push(`    --exclude-configs '${blockingFailed.join(',')}'`)
+        out.push(`    ${excludeOption} '${blockingFailed.join(',')}'`)
       }
     }
     out.push('')
@@ -284,7 +304,7 @@ export function renderResolutionReport(
   if (nonBlockingUnscannable.length) {
     const n = new Set(nonBlockingUnscannable.map(u => u.config)).size
     notices.push(
-      `Could not scan ${n} configuration(s) — re-run with --verbose for ${name}'s messages.`,
+      `Could not scan ${n} ${noun}(s) — re-run with --verbose for ${name}'s messages.`,
     )
   }
 
@@ -300,7 +320,7 @@ export function renderResolutionReport(
   }
   if (unscannable.length) {
     detailLines.push('')
-    detailLines.push(`${name} configurations that could not be scanned:`)
+    detailLines.push(`${name} ${noun}s that could not be scanned:`)
     for (const u of unscannable) {
       detailLines.push('')
       detailLines.push(`  ${u.config}:`)

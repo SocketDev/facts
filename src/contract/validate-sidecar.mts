@@ -13,6 +13,7 @@ import type { ContractValidation, ContractViolation } from './violations.mts'
 // against the consumer's field list at a glance.
 export const RESOLVED_COMPONENT_FIELDS: readonly string[] = [
   'classifier',
+  'ecosystem',
   'ext',
   'group',
   'name',
@@ -79,6 +80,15 @@ export function checkComponent(
     violations.push({
       path: `${path}.classifier`,
       message: `saw ${describeType(value['classifier'])}, wanted a string or an explicit null`,
+    })
+  }
+  // Strict producer, liberal consumer: this package always writes `ecosystem`,
+  // and a payload without it is still valid — that is what every sidecar
+  // written before the tag existed looks like, and it means 'maven'.
+  if ('ecosystem' in value && typeof value['ecosystem'] !== 'string') {
+    violations.push({
+      path: `${path}.ecosystem`,
+      message: `saw ${describeType(value['ecosystem'])}, wanted a purl type string such as "maven" or "nuget"`,
     })
   }
   checkStringArray(value['sources'], `${path}.sources`, violations)

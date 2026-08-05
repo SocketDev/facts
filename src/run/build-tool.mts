@@ -1,14 +1,20 @@
 import path from 'node:path'
 
-export type BuildTool = 'gradle' | 'maven' | 'sbt'
+export type BuildTool = 'dotnet' | 'gradle' | 'maven' | 'sbt'
 
-export const BUILD_TOOLS: readonly BuildTool[] = ['gradle', 'maven', 'sbt']
+export const BUILD_TOOLS: readonly BuildTool[] = [
+  'dotnet',
+  'gradle',
+  'maven',
+  'sbt',
+]
 
 // The binary name each tool conventionally installs on PATH. Exported as
 // KNOWLEDGE, not as a fallback: nothing in this package looks a binary up on
 // PATH. A consumer that wants PATH resolution does the lookup itself, applies
 // its own trust policy to the result, and passes the absolute path back in.
 const CONVENTIONAL_BIN: Readonly<Record<BuildTool, string>> = Object.freeze({
+  dotnet: 'dotnet',
   gradle: 'gradle',
   maven: 'mvn',
   sbt: 'sbt',
@@ -16,7 +22,8 @@ const CONVENTIONAL_BIN: Readonly<Record<BuildTool, string>> = Object.freeze({
 
 // Project-local wrapper filename, where the tool has that convention. A wrapper
 // pins the build-tool version the project expects, which is why a consumer
-// usually prefers it. sbt has no wrapper convention. POSIX names only.
+// usually prefers it. sbt has no wrapper convention, and dotnet pins its SDK
+// through global.json instead. POSIX names only.
 const WRAPPER_FILENAME: Readonly<Partial<Record<BuildTool, string>>> =
   Object.freeze({
     gradle: 'gradlew',

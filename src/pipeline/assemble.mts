@@ -1,20 +1,34 @@
 import crypto from 'node:crypto'
 import { existsSync } from 'node:fs'
 
-import { mavenCoordinateKey } from '../contract/coordinate.mts'
 import { isBuildTool } from '../run/build-tool.mts'
+import { buildArtifactPaths, gav } from './artifact-paths.mts'
 
 import type {
   SocketFactsSbom,
   SocketFactsSbomComponent,
   SocketFactsSbomMetadata,
   SocketFactsSbomProject,
+  SocketFactsTool,
 } from '../contract/sbom.mts'
 import type { ResolvedArtifactPaths } from '../contract/sidecar.mts'
 import type { ResolutionReport } from '../report/report-types.mts'
 import type { ParsedRecords, RawCoord, RawProject } from './records.mts'
 
 const PURL_TYPE_MAVEN = 'maven'
+
+const PURL_TYPE_NUGET = 'nuget'
+
+// Exhaustive, not a "dotnet or else maven" ternary: adding a fifth tool to
+// SocketFactsTool then fails to type-check here until someone names its purl
+// type, instead of silently assembling maven-typed components for it.
+const PURL_TYPE_BY_TOOL: Readonly<Record<SocketFactsTool, string>> =
+  Object.freeze({
+    dotnet: PURL_TYPE_NUGET,
+    gradle: PURL_TYPE_MAVEN,
+    maven: PURL_TYPE_MAVEN,
+    sbt: PURL_TYPE_MAVEN,
+  })
 
 export type AssembleResult = {
   facts: SocketFactsSbom
@@ -55,11 +69,12 @@ export function assembleFacts(
   const { directByRoot, finalNodes } = mergePathSensitive(perRoot)
 
   const tool = isBuildTool(parsed.tool) ? parsed.tool : 'gradle'
-  const components = buildComponents(finalNodes)
+  const purlType = purlTypeForTool(tool)
+  const components = buildComponents(finalNodes, purlType)
   const projects =
     opts.emitProjects === false
       ? []
-      : buildProjects(parsed, finalNodes, directByRoot, perRoot)
+      : buildProjects(parsed, finalNodes, directByRoot, perRoot, purlType)
 
   const metadata: SocketFactsSbomMetadata = {
     format: 'socket-facts-sbom',
@@ -83,94 +98,9 @@ export function assembleFacts(
   }
 }
 
-export function buildArtifactPaths(
-  finalNodes: Map<string, MergedNode>,
-  projects: RawProject[],
-  fileExists: (path: string) => boolean,
-): ResolvedArtifactPaths {
-  const projectsByGav = new Map<
-    string,
-    { sources: string[]; targets: string[] }
-  >()
-  for (let i = 0, { length } = projects; i < length; i += 1) {
-    const p = projects[i]!
-    projectsByGav.set(gav(p.group, p.name, p.version), {
-      sources: p.sources,
-      targets: p.targets,
-    })
-  }
-  const targetsByCoord = new Map<string, string[]>()
-  const targetsByGav = new Map<string, string[]>()
-  const sourcesByCoord = new Map<string, string[]>()
-  const coords = new Set<string>()
-  for (const fn of finalNodes.values()) {
-    const c = fn.coord
-    const coordKey = mavenCoordinateKey({
-      groupId: c.group,
-      artifactId: c.name,
-      type: c.ext,
-      classifier: c.classifier,
-      version: c.version,
-    })
-    if (!coordKey) {
-      continue
-    }
-    coords.add(coordKey)
-    const pi = projectsByGav.get(gav(c.group, c.name, c.version ?? ''))
-    const sources = (pi?.sources ?? []).filter(fileExists)
-    const targets = [...new Set([...fn.targets, ...(pi?.targets ?? [])])]
-      .filter(fileExists)
-      .toSorted()
-    if (sources.length) {
-      sourcesByCoord.set(coordKey, sources)
-    }
-    if (!targets.length) {
-      continue
-    }
-    targetsByCoord.set(coordKey, targets)
-    const gavKey = mavenCoordinateKey({
-      groupId: c.group,
-      artifactId: c.name,
-      version: c.version,
-    })
-    if (gavKey) {
-      const acc = targetsByGav.get(gavKey)
-      if (acc) {
-        for (let i = 0, { length } = targets; i < length; i += 1) {
-          const f = targets[i]!
-          if (!acc.includes(f)) {
-            acc.push(f)
-          }
-        }
-      } else {
-        targetsByGav.set(gavKey, [...targets])
-      }
-    }
-  }
-  // A top-level module is a `project` but usually not a dependency node, so its
-  // source roots (where reachability starts) are missed by the node loop above;
-  // emit first-party module paths here.
-  for (let i = 0, { length } = projects; i < length; i += 1) {
-    const p = projects[i]!
-    const coordKey = mavenCoordinateKey({
-      groupId: p.group,
-      artifactId: p.name,
-      version: p.version,
-    })
-    if (!coordKey) {
-      continue
-    }
-    coords.add(coordKey)
-    unionInto(sourcesByCoord, coordKey, p.sources.filter(fileExists))
-    const targets = p.targets.filter(fileExists)
-    unionInto(targetsByCoord, coordKey, targets)
-    unionInto(targetsByGav, coordKey, targets)
-  }
-  return { targetsByCoord, targetsByGav, sourcesByCoord, coords }
-}
-
 export function buildComponents(
   finalNodes: Map<string, MergedNode>,
+  purlType: string,
 ): SocketFactsSbomComponent[] {
   return [...finalNodes.keys()].toSorted().map(id => {
     const fn = finalNodes.get(id)!
@@ -183,8 +113,8 @@ export function buildComponents(
       qualifiers['ext'] = c.ext
     }
     const comp: SocketFactsSbomComponent = {
-      type: PURL_TYPE_MAVEN,
-      namespace: c.group,
+      type: purlType,
+      ...namespaceEntry(purlType, c.group),
       name: c.name,
       ...(c.version ? { version: c.version } : {}),
       ...(Object.keys(qualifiers).length ? { qualifiers } : {}),
@@ -201,6 +131,39 @@ export function buildComponents(
     }
     return comp
   })
+}
+
+// Roots carry the (project, config) pairs. Label each project by its relative
+// dir, which is unique and human-readable, and fall back to its name, then its
+// key. The flat scannedConfigs union is not enough on its own once projects in
+// one build resolve different configs — routine for dotnet, where every
+// project picks its own target frameworks.
+export function buildConfigsByProject(
+  parsed: ParsedRecords,
+): Array<{ project: string; configs: string[] }> {
+  const configsByProjectKey = new Map<string, Set<string>>()
+  for (const root of parsed.roots.values()) {
+    if (!root.config) {
+      continue
+    }
+    let set = configsByProjectKey.get(root.projectKey)
+    if (!set) {
+      set = new Set()
+      configsByProjectKey.set(root.projectKey, set)
+    }
+    set.add(root.config)
+  }
+  return [...configsByProjectKey]
+    .map(({ 0: projectKey, 1: configs }) => {
+      const p = parsed.projects.get(projectKey)
+      return {
+        project: p?.dir || p?.name || projectKey,
+        configs: [...configs].toSorted(),
+      }
+    })
+    .toSorted((a, b) =>
+      a.project < b.project ? -1 : a.project > b.project ? 1 : 0,
+    )
 }
 
 export function buildPerRoot(parsed: ParsedRecords): Map<string, PerRoot> {
@@ -245,6 +208,7 @@ export function buildProjects(
   finalNodes: Map<string, MergedNode>,
   directByRoot: Map<string, Set<string>>,
   perRoot: Map<string, PerRoot>,
+  purlType: string,
 ): SocketFactsSbomProject[] {
   const idsByGav = new Map<string, Set<string>>()
   for (const [id, fn] of finalNodes) {
@@ -271,8 +235,8 @@ export function buildProjects(
 
   const projects = [...parsed.projects.values()].map(p => {
     const entry: SocketFactsSbomProject = {
-      type: PURL_TYPE_MAVEN,
-      namespace: p.group,
+      type: purlType,
+      ...namespaceEntry(purlType, p.group),
       name: p.name,
       ...(p.version ? { version: p.version } : {}),
       subprojectDir: p.dir,
@@ -284,8 +248,8 @@ export function buildProjects(
     return entry
   })
   projects.sort((a, b) => {
-    const ka = `${a.subprojectDir} ${a.namespace}:${a.name}`
-    const kb = `${b.subprojectDir} ${b.namespace}:${b.name}`
+    const ka = `${a.subprojectDir} ${a.namespace ?? ''}:${a.name}`
+    const kb = `${b.subprojectDir} ${b.namespace ?? ''}:${b.name}`
     return ka < kb ? -1 : ka > kb ? 1 : 0
   })
   return projects
@@ -310,11 +274,12 @@ export function buildReport(parsed: ParsedRecords): ResolutionReport {
     seenUnscannable.add(key)
     return true
   })
-  return { failures, scannedConfigs: parsed.scannedConfigs, unscannable }
-}
-
-export function gav(group: string, name: string, version: string): string {
-  return `${group}:${name}:${version}`
+  return {
+    configsByProject: buildConfigsByProject(parsed),
+    failures,
+    scannedConfigs: parsed.scannedConfigs,
+    unscannable,
+  }
 }
 
 // A coordinate with identical subtrees everywhere collapses to one node (id =
@@ -438,31 +403,27 @@ export function mergePathSensitive(perRoot: Map<string, PerRoot>): {
   return { finalNodes, directByRoot }
 }
 
+// Maven-type entries always carry the `namespace` key, even when it is empty:
+// that is the shape every pre-dotnet consumer matches identity on. Groupless
+// ecosystems (NuGet) omit the key entirely.
+export function namespaceEntry(
+  purlType: string,
+  group: string,
+): { namespace?: string | undefined } {
+  if (purlType === PURL_TYPE_NUGET && !group) {
+    return {}
+  }
+  return { namespace: group }
+}
+
+export function purlTypeForTool(tool: SocketFactsTool): string {
+  return PURL_TYPE_BY_TOOL[tool]
+}
+
 export function shortHash(s: string): string {
   return crypto
     .createHash('sha256')
     .update(s, 'utf8')
     .digest('hex')
     .slice(0, 12)
-}
-
-export function unionInto(
-  map: Map<string, string[]>,
-  key: string,
-  add: string[],
-): void {
-  if (!add.length) {
-    return
-  }
-  const acc = map.get(key)
-  if (acc) {
-    for (let i = 0, { length } = add; i < length; i += 1) {
-      const f = add[i]!
-      if (!acc.includes(f)) {
-        acc.push(f)
-      }
-    }
-  } else {
-    map.set(key, [...add])
-  }
 }

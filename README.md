@@ -103,6 +103,7 @@ Resolve the emitter assets rather than guessing where they live:
 ```js
 import {
   assertMavenExtensionBuilt,
+  dotnetToolDllPath,
   gradleInitScriptPath,
   sbtPluginSourcePath,
 } from '@socketsecurity/facts/assets'
@@ -119,11 +120,13 @@ pnpm run check
 pnpm test
 ```
 
-Build the Maven core extension, which needs a JDK and is not part of
-`pnpm run build`:
+Two emitters compile from source and are not part of `pnpm run build`, because
+a plain checkout cannot assume either toolchain. The Maven core extension needs
+a JDK; the dotnet tool needs a .NET 8+ SDK:
 
 ```sh
 pnpm run build:maven-extension
+pnpm run build:dotnet-tool
 ```
 
 The dynamic-version conformance suite needs Gradle, Maven, and a JDK. It skips

@@ -47,43 +47,6 @@ public final class SocketSupport {
   }
 
   /**
-   * Translate a config-name glob to a case-sensitive regex. Supports {@code *}, {@code ?}, and
-   * {@code [...]} character classes: enumerations ({@code [cC]}), ranges ({@code [a-z]}), and
-   * {@code [!..]}/{@code [^..]} negation. A malformed glob falls back to a literal match, never throws.
-   */
-  public static Pattern globToRegex(String glob) {
-    StringBuilder sb = new StringBuilder();
-    int i = 0;
-    int n = glob.length();
-    while (i < n) {
-      char c = glob.charAt(i);
-      if (c == '*') { sb.append(".*"); i++; }
-      else if (c == '?') { sb.append('.'); i++; }
-      else if (c == '[') {
-        int j = glob.indexOf(']', i + 1);
-        // Treat as a class only with a non-empty body; else a literal '['.
-        if (j <= i + 1) { sb.append("\\["); i++; }
-        else {
-          String body = glob.substring(i + 1, j);
-          boolean neg = body.startsWith("!");
-          if (neg) body = body.substring(1);
-          // Only literal chars and '-' ranges are meaningful; neutralize regex-class tricks.
-          body = body.replace("\\", "\\\\").replace("[", "\\[").replace("&", "\\&");
-          sb.append('[').append(neg ? "^" : "").append(body).append(']');
-          i = j + 1;
-        }
-      } else if ("\\.^$|+(){}]".indexOf(c) >= 0) {
-        sb.append('\\').append(c); i++;
-      } else { sb.append(c); i++; }
-    }
-    try {
-      return Pattern.compile(sb.toString());
-    } catch (java.util.regex.PatternSyntaxException e) {
-      return Pattern.compile(Pattern.quote(glob));
-    }
-  }
-
-  /**
    * Compile a comma-separated list of {@code --exclude-paths} into glob {@link PathMatcher}s, used
    * only to skip whole excluded reactor modules. Each entry variant yields the entry itself and
    * {@code entry/**} so it matches the dir and its subtree (same expansion as the SCA ignore path).
@@ -151,13 +114,24 @@ public final class SocketSupport {
     return false;
   }
 
-  /** Parse a comma-separated list of globs into case-sensitive patterns. */
+  /**
+   * Parse a comma-separated list of PRE-COMPILED anchored regex pattern sources.
+   * {@code src/run/config-glob.mts} is the single glob implementation and compiles the
+   * caller-facing globs; this extension only {@link Pattern#compile(String)}s what it receives. A
+   * pattern that doesn't compile is dropped, never thrown: the caller emits a dialect-portable
+   * subset, so this only guards against a broken transport.
+   */
   public static List<Pattern> parsePatterns(String csv) {
     List<Pattern> out = new ArrayList<>();
     if (csv == null || csv.trim().isEmpty()) return out;
     for (String raw : csv.split(",")) {
       String p = raw.trim();
-      if (!p.isEmpty()) out.add(globToRegex(p));
+      if (p.isEmpty()) continue;
+      try {
+        out.add(Pattern.compile(p));
+      } catch (java.util.regex.PatternSyntaxException ignored) {
+        // Dropped; see the contract above.
+      }
     }
     return out;
   }

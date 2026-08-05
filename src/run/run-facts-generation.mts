@@ -2,11 +2,13 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
 import {
+  assertDotnetToolBuilt,
   assertMavenExtensionBuilt,
   gradleInitScriptPath,
   SBT_PLUGIN_FILENAME,
   sbtPluginSourcePath,
 } from '../assets.mts'
+import { serializeConfigPatterns } from './config-glob.mts'
 import { applyBuildEnvPolicy } from './env.mts'
 import { assertFactsInvocation } from './invocation.mts'
 import { factsGenerationTimeoutMs } from './timeouts.mts'
@@ -55,11 +57,16 @@ export function emitterProps(
   if (cfg.populateFilesFor) {
     props.push(`${prefix}socket.populateFilesFor=${cfg.populateFilesFor}`)
   }
-  if (cfg.includeConfigs) {
-    props.push(`${prefix}socket.includeConfigs=${cfg.includeConfigs}`)
+  // Globs compile to anchored regex pattern sources HERE, because
+  // config-glob.mts is the single glob implementation; each emitter only
+  // compiles the patterns it is handed.
+  const includePatterns = serializeConfigPatterns(cfg.includeConfigs)
+  if (includePatterns) {
+    props.push(`${prefix}socket.includeConfigs=${includePatterns}`)
   }
-  if (cfg.excludeConfigs) {
-    props.push(`${prefix}socket.excludeConfigs=${cfg.excludeConfigs}`)
+  const excludePatterns = serializeConfigPatterns(cfg.excludeConfigs)
+  if (excludePatterns) {
+    props.push(`${prefix}socket.excludeConfigs=${excludePatterns}`)
   }
   if (cfg.excludePaths?.length) {
     // CSV: an entry can never contain a comma, because the CLI flag these come
@@ -67,6 +74,41 @@ export function emitterProps(
     props.push(`${prefix}socket.excludePaths=${cfg.excludePaths.join(',')}`)
   }
   return props
+}
+
+// The bundled C# tool runs one MSBuild session — evaluate, then an in-process
+// restore, then read each project.assets.json through NuGet's own APIs — under
+// a single global-property bag, so the caller's `-p:` options apply to
+// resolution and to the emitted graph alike. It writes the same records
+// protocol as the JVM emitters.
+export async function runDotnet(
+  config: FactsGenerationOptions,
+): Promise<FactsGenerationResult> {
+  const cfg = { __proto__: null, ...config } as typeof config
+  const toolDll = assertDotnetToolBuilt()
+  return await withTmpDir('socket-dotnet-facts-', async tmp => {
+    const recordsFile = path.join(tmp, 'records.tsv')
+    const includePatterns = serializeConfigPatterns(cfg.includeConfigs)
+    const excludePatterns = serializeConfigPatterns(cfg.excludeConfigs)
+    const args = [
+      toolDll,
+      '--records',
+      recordsFile,
+      '--root',
+      cfg.cwd,
+      ...(cfg.withFiles ? ['--with-files'] : []),
+      ...(includePatterns ? ['--include-configs', includePatterns] : []),
+      ...(excludePatterns ? ['--exclude-configs', excludePatterns] : []),
+      ...(cfg.stdio === 'inherit' ? ['--verbose'] : []),
+      ...cfg.opts,
+    ]
+    const out = await runBuildToolNeverThrow(
+      cfg.bin,
+      args,
+      spawnConfigFor(config),
+    )
+    return await assembleFromRecords(out, recordsFile)
+  })
 }
 
 // Runs one build tool's Socket facts emitter against an already-resolved,
@@ -78,6 +120,8 @@ export async function runFactsGeneration(
   const cfg = { __proto__: null, ...config } as typeof config
   assertFactsInvocation(config)
   switch (cfg.tool) {
+    case 'dotnet':
+      return await runDotnet(config)
     case 'gradle':
       return await runGradle(config)
     case 'maven':
@@ -86,7 +130,7 @@ export async function runFactsGeneration(
       return await runSbt(config)
     default:
       throw new Error(
-        `Unsupported build tool. Where: runFactsGeneration. Saw ${String(cfg.tool)}, wanted gradle, maven, or sbt. Fix: pass one of the supported BuildTool values.`,
+        `Unsupported build tool. Where: runFactsGeneration. Saw ${String(cfg.tool)}, wanted dotnet, gradle, maven, or sbt. Fix: pass one of the supported BuildTool values.`,
       )
   }
 }

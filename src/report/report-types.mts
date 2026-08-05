@@ -13,6 +13,10 @@ export type UnscannableConfig = {
 }
 
 export type ResolutionReport = {
+  // Which configs each first-party project resolved. `scannedConfigs` is a
+  // flat union across the whole build, which loses attribution as soon as two
+  // projects resolve different configs.
+  configsByProject: Array<{ project: string; configs: string[] }>
   failures: ResolutionFailure[]
   scannedConfigs: string[]
   unscannable: UnscannableConfig[]
