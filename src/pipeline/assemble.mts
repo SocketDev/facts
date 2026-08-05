@@ -13,7 +13,7 @@ import type {
 } from '../contract/sbom.mts'
 import type { ResolvedArtifactPaths } from '../contract/sidecar.mts'
 import type { ResolutionReport } from '../report/report-types.mts'
-import type { ParsedRecords, RawCoord, RawProject } from './records.mts'
+import type { ParsedRecords, RawCoord } from './records.mts'
 
 const PURL_TYPE_MAVEN = 'maven'
 
