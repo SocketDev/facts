@@ -2,6 +2,15 @@
   "name": "@socketsecurity/facts",
   "version": "0.1.0",
   "description": "Generation of .socket.facts.json and the wire contracts around it",
+  "keywords": [
+    "sbom",
+    "security"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SocketDev/socket-facts"
+  },
+  "author": "SocketDev <eng@socket.dev>",
   "license": "MIT",
   "files": [
     "CHANGELOG.md",
