@@ -24,6 +24,36 @@ export const MAVEN_EXTENSION_DIR: string = path.join(
   'maven-extension',
 )
 
+export const DOTNET_TOOL_DIR: string = path.join(EMITTERS_DIR, 'dotnet-tool')
+
+export const DOTNET_TOOL_DLL_FILENAME = 'socket-facts-dotnet.dll'
+
+// `dotnet publish` emits a directory, not a single file: the tool assembly
+// plus its deps.json/runtimeconfig.json and the compile-time reference
+// assemblies. The whole directory ships; this is the entry point inside it.
+export const DOTNET_TOOL_PUBLISH_DIR: string = path.join(
+  DOTNET_TOOL_DIR,
+  'publish',
+)
+
+// Fail closed, for the same reason as the Maven jar: a `dotnet` invocation
+// pointed at a missing tool assembly is a launch error whose wording ("could
+// not execute because the specified command or file was not found") reads like
+// a missing SDK, which sends the operator down the wrong path entirely.
+export function assertDotnetToolBuilt(): string {
+  const dllPath = dotnetToolDllPath()
+  if (existsSync(dllPath)) {
+    return dllPath
+  }
+  throw new Error(
+    `Socket facts dotnet tool is missing. ` +
+      `Where: ${dllPath}. ` +
+      `Saw no file, wanted the published tool assembly that ships with this package. ` +
+      `Fix: in a published install this is a packaging defect — reinstall @socketsecurity/facts; ` +
+      `in a local checkout run \`pnpm run build:dotnet-tool\` (needs a .NET 8+ SDK).`,
+  )
+}
+
 // Fail closed. Maven with no extension on `-Dmaven.ext.class.path` runs to
 // completion and emits nothing, which downstream reads as "this project has no
 // dependencies" rather than as a failure — so an absent jar has to throw here,
@@ -42,8 +72,14 @@ export function assertMavenExtensionBuilt(): string {
   )
 }
 
+export function dotnetToolDllPath(): string {
+  return path.join(DOTNET_TOOL_PUBLISH_DIR, DOTNET_TOOL_DLL_FILENAME)
+}
+
 export function emitterAssetPath(tool: BuildTool): string {
   switch (tool) {
+    case 'dotnet':
+      return dotnetToolDllPath()
     case 'gradle':
       return gradleInitScriptPath()
     case 'maven':
@@ -52,7 +88,7 @@ export function emitterAssetPath(tool: BuildTool): string {
       return sbtPluginSourcePath()
     default:
       throw new Error(
-        `Unsupported build tool. Where: emitterAssetPath. Saw ${String(tool)}, wanted gradle, maven, or sbt. Fix: pass one of the supported BuildTool values.`,
+        `Unsupported build tool. Where: emitterAssetPath. Saw ${String(tool)}, wanted dotnet, gradle, maven, or sbt. Fix: pass one of the supported BuildTool values.`,
       )
   }
 }

@@ -13,6 +13,7 @@ function component(
 ): Record<string, unknown> {
   return {
     classifier: null,
+    ecosystem: 'maven',
     ext: 'jar',
     group: 'org.example',
     name: 'lib',
@@ -105,5 +106,23 @@ describe('assertResolvedPathsSidecar', () => {
     expect(message).toContain('Where: a test')
     expect(message).toContain('Saw:')
     expect(message).toContain('Fix:')
+  })
+})
+
+describe('the ecosystem tag', () => {
+  it('still accepts a sidecar written before the tag existed', () => {
+    const legacy = component()
+    delete legacy['ecosystem']
+
+    expect(validateResolvedPathsSidecar([legacy]).ok).toBe(true)
+  })
+
+  it('rejects a non-string tag', () => {
+    const result = validateResolvedPathsSidecar([
+      component({ ecosystem: 7 } as never),
+    ])
+
+    expect(result.ok).toBe(false)
+    expect(result.ok ? [] : result.violations[0]?.path).toBe('[0].ecosystem')
   })
 })

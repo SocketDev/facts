@@ -9,7 +9,8 @@ import type {
 
 // Emit an entry for every SBOM component AND every first-party project: a
 // top-level module is a project, not a dependency component, yet its source
-// roots are where reachability starts, so the sidecar must carry them.
+// roots are where reachability starts, so the sidecar must carry them. The
+// ecosystem is each artifact's own purl `type`, passed through verbatim.
 export function accumulateSidecar(
   acc: SidecarAccumulator,
   facts: SocketFactsSbom,
@@ -25,6 +26,7 @@ export function accumulateSidecar(
       comp.qualifiers?.['ext'] ?? '',
       // oxlint-disable-next-line socket/prefer-undefined-over-null -- frozen sidecar contract serializes an explicit JSON null
       comp.qualifiers?.['classifier'] ?? null,
+      comp.type,
     )
   }
   // First-party modules have no ext/classifier.
@@ -38,6 +40,7 @@ export function accumulateSidecar(
       '',
       // oxlint-disable-next-line socket/prefer-undefined-over-null -- frozen sidecar contract serializes an explicit JSON null
       null,
+      proj.type,
     )
   }
 }
@@ -50,6 +53,7 @@ export function addEntry(
   version: string,
   ext: string,
   classifier: string | null,
+  ecosystem: string,
 ): void {
   const coordKey = mavenCoordinateKey({
     groupId: group,
@@ -61,10 +65,23 @@ export function addEntry(
   if (!coordKey) {
     return
   }
-  let entry = acc.get(coordKey)
+  // Namespaced by ecosystem so a groupless NuGet coordinate can never merge
+  // with a Maven one. This key is accumulator-internal; the wire format
+  // carries the ecosystem tag on the entry itself.
+  const accKey = `${ecosystem}|${coordKey}`
+  let entry = acc.get(accKey)
   if (!entry) {
-    entry = { group, name, version, ext, classifier, targets: [], sources: [] }
-    acc.set(coordKey, entry)
+    entry = {
+      group,
+      name,
+      version,
+      ext,
+      classifier,
+      ecosystem,
+      targets: [],
+      sources: [],
+    }
+    acc.set(accKey, entry)
   }
   pushUnique(entry.targets, artifactPaths.targetsByCoord.get(coordKey) ?? [])
   pushUnique(entry.sources, artifactPaths.sourcesByCoord.get(coordKey) ?? [])
@@ -96,8 +113,8 @@ export function serializeSidecar(
     entry.sources.sort()
   }
   resolved.sort((a, b) => {
-    const ka = `${a.group}:${a.name}:${a.ext}:${a.classifier ?? ''}:${a.version}`
-    const kb = `${b.group}:${b.name}:${b.ext}:${b.classifier ?? ''}:${b.version}`
+    const ka = `${a.ecosystem ?? ''}:${a.group}:${a.name}:${a.ext}:${a.classifier ?? ''}:${a.version}`
+    const kb = `${b.ecosystem ?? ''}:${b.group}:${b.name}:${b.ext}:${b.classifier ?? ''}:${b.version}`
     return ka < kb ? -1 : ka > kb ? 1 : 0
   })
   return resolved

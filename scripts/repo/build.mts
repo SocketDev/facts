@@ -25,6 +25,7 @@ import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
+import { isMainModule } from '../fleet/_shared/is-main-module.mts'
 import { REPO_ROOT } from './paths.mts'
 
 const logger = getDefaultLogger()
@@ -73,10 +74,12 @@ export async function main(): Promise<void> {
   logger.info('build: done')
 }
 
-main().then(
-  () => process.exit(0),
-  (error: unknown) => {
-    logger.error(errorMessage(error))
-    process.exit(1)
-  },
-)
+if (isMainModule(import.meta.url)) {
+  main().then(
+    () => process.exit(0),
+    (error: unknown) => {
+      logger.error(errorMessage(error))
+      process.exit(1)
+    },
+  )
+}

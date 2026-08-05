@@ -138,3 +138,12 @@ pnpm-debug.log
 # output, never tracked.
 /emitters/maven-extension/target/
 /emitters/maven-extension/socket-facts-maven-extension.jar
+
+# NuGet emitter build output. `pnpm run build:dotnet-tool` publishes the C#
+# sources under emitters/dotnet-tool into publish/, which the published package
+# ships; the SDK's intermediate bin/ and obj/ dirs and the published output are
+# all build output, never tracked. The fleet keeps every ignore in this root
+# file, so these live here rather than in a nested .gitignore.
+/emitters/dotnet-tool/bin/
+/emitters/dotnet-tool/obj/
+/emitters/dotnet-tool/publish/

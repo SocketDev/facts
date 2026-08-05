@@ -184,3 +184,42 @@ describe('resolution failure classification', () => {
     expect(r.summary.startsWith('\n')).toBe(false)
   })
 })
+
+describe('nuget dialect wording', () => {
+  it('names target frameworks and the option that narrows them', () => {
+    const rendered = renderResolutionErrorReport(
+      [
+        {
+          coord: 'Contoso.Missing:1.0.0',
+          detail: 'NU1101: Unable to find package Contoso.Missing',
+          config: 'net8.0',
+        },
+      ],
+      ['net8.0'],
+      'dotnet',
+    )
+
+    expect(rendered.hasBlockingFailures).toBe(true)
+    expect(rendered.summary).toContain('1 target framework(s)')
+    expect(rendered.summary).toContain("--exclude-target-frameworks 'net8.0'")
+    expect(rendered.summary).not.toContain('configuration(s)')
+  })
+
+  it('drops the count clause when no failure carries a target framework', () => {
+    const rendered = renderResolutionErrorReport(
+      [
+        {
+          coord: '.',
+          detail:
+            'socket-facts-dotnet stopped before it finished; the records below are incomplete: boom',
+          config: '',
+        },
+      ],
+      [],
+      'dotnet',
+    )
+
+    expect(rendered.hasBlockingFailures).toBe(true)
+    expect(rendered.summary).not.toContain('in 0 ')
+  })
+})
