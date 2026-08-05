@@ -302,7 +302,7 @@ export function resolveSeenStoreDir(projectDir: string | undefined): string {
 }
 
 // The narrowed description from an agent's meta companion, or undefined.
-function readAgentDescription(
+export function readAgentDescription(
   subagentsDir: string,
   id: string,
 ): string | undefined {
@@ -416,7 +416,7 @@ function readSeenStore(filePath: string): SeenStore {
 }
 
 // Flush the warn-once store. Fail-open — a broken store must not block a call.
-function writeSeenStore(filePath: string, store: SeenStore): void {
+export function writeSeenStore(filePath: string, store: SeenStore): void {
   try {
     mkdirSync(path.dirname(filePath), { recursive: true })
     writeFileSync(filePath, JSON.stringify(store), 'utf8')
@@ -426,7 +426,7 @@ function writeSeenStore(filePath: string, store: SeenStore): void {
 }
 
 // Expire session stores past the TTL to bound store growth. Fail-open.
-function sweepStaleSeenStores(
+export function sweepStaleSeenStores(
   storeDir: string,
   config: { now: number; ttlMs: number },
 ): void {

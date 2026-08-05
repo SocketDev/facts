@@ -235,7 +235,7 @@ export function writeNodeVersion(root: string, version: string): void {
  * history. Never touches api.github.com directly (hook-blocked) and never adds
  * nodejs.org to an allowlist.
  */
-async function fetchNodeReleasesViaGhApi(): Promise<NodeRelease[]> {
+export async function fetchNodeReleasesViaGhApi(): Promise<NodeRelease[]> {
   const result = await spawn(
     'gh',
     ['api', 'repos/nodejs/node/releases?per_page=100'],
@@ -332,6 +332,8 @@ const SCRIPT_META: ScriptMeta = {
   --apply          write the resolved version to .node-version`,
 }
 
+/* c8 ignore start - entrypoint guard; exercised via subprocess */
 if (isMainModule(import.meta.url)) {
   runMain(() => main(process.argv.slice(2)), SCRIPT_META)
 }
+/* c8 ignore stop */

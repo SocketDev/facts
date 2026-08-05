@@ -209,7 +209,7 @@ export function findProseAsides(repoRoot: string): string[] {
   return scanFiles(repoRoot, collectMarkdownFiles(repoRoot))
 }
 
-function main(): number {
+export function main(): number {
   // Non-flag args scope the scan to explicit paths, self-check a batch;
   // otherwise the whole tracked markdown tree gates.
   const paths = process.argv.slice(2).filter(a => !a.startsWith('-'))
