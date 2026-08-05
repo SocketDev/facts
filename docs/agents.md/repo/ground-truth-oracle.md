@@ -30,7 +30,7 @@ is expected. A component the build resolved and the facts dropped, an edge the
 build reports and the facts omit, or a version the two disagree about is the
 failure the suite exists to catch.
 
-sdxgen's harness asserts a percentage — 80%, 90% with tool execution — because
+sdxgen's harness asserts a percentage, 80% or 90% with tool execution, because
 its parser is allowed to be approximate. This one asserts zero divergence,
 because ours is not.
 

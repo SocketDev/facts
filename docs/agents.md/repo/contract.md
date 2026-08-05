@@ -30,11 +30,15 @@ coordinate itself, best-effort: local caches first, then
 calling the `resolveArtifact` helper at line 710 of the same file.
 
 The history is worth knowing, because the short-lived behavior is the one people
-remember. Coana's #2292 (`548637bbc`, 2026-06-30) landed the sidecar consumer
-with a hard short-circuit — uncovered meant unresolved. #2295 (`5d3056a1b`,
-2026-07-01) relaxed it the next day, because reachability is not scoped per
-project yet, so a scan legitimately carries artifacts from subprojects outside
-the sidecar's build root. The pinned 15.9.5 contains the relaxed behavior.
+remember. Coana's
+[#2292](https://github.com/coana-tech/coana-package-manager/pull/2292)
+(`548637bbc`, 2026-06-30) landed the sidecar consumer with a hard short-circuit:
+uncovered meant unresolved.
+[#2295](https://github.com/coana-tech/coana-package-manager/pull/2295)
+(`5d3056a1b`, 2026-07-01) relaxed it the next day, because reachability is not
+scoped per project yet, so a scan legitimately carries artifacts from
+subprojects outside the sidecar's build root. The pinned 15.9.5 contains the
+relaxed behavior.
 
 The consequence is the load-bearing part. **The sidecar is an accelerator, not an
 authority.** A gap does not fail the scan and does not narrow it — it silently
