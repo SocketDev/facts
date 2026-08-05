@@ -6,12 +6,12 @@
     "sbom",
     "security"
   ],
+  "license": "MIT",
+  "author": "SocketDev <eng@socket.dev>",
   "repository": {
     "type": "git",
     "url": "https://github.com/SocketDev/socket-facts"
   },
-  "author": "SocketDev <eng@socket.dev>",
-  "license": "MIT",
   "files": [
     "CHANGELOG.md",
     "dist/**/*",
