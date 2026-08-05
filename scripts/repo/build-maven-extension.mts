@@ -15,6 +15,7 @@ import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
+import { isMainModule } from '../fleet/_shared/is-main-module.mts'
 import {
   MAVEN_EXTENSION_DIR,
   MAVEN_EXTENSION_JAR,
@@ -55,10 +56,12 @@ export async function main(): Promise<void> {
   logger.success(`build:maven-extension: ${MAVEN_EXTENSION_JAR}`)
 }
 
-main().then(
-  () => process.exit(0),
-  (error: unknown) => {
-    logger.error(errorMessage(error))
-    process.exit(1)
-  },
-)
+if (isMainModule(import.meta.url)) {
+  main().then(
+    () => process.exit(0),
+    (error: unknown) => {
+      logger.error(errorMessage(error))
+      process.exit(1)
+    },
+  )
+}
