@@ -24,7 +24,10 @@
          clash (0x80131040) with ours on any SDK whose NuGet version differs
          from the bundled one. Versions are the OLDEST supported surface:
          compile-low/run-high binds on every SDK >= 6, and the SDK's own NuGet
-         can always read its own restore output. Microsoft.Build 17.3.2 is the
+         can always read its own restore output. 6.0.6 rather than 6.0.0 is
+         the patched floor of that line: 6.0.0 carries GHSA-68w7-72jg-6qpp,
+         a critical NuGet client security-feature bypass. Staying inside 6.0.x
+         keeps the compile-low guarantee intact. Microsoft.Build 17.3.2 is the
          newest with net6.0 assets. -->
     <PackageReference Include="Microsoft.Build" Version="17.3.2" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.7.8" />
@@ -34,16 +37,16 @@
          closure is listed explicitly to keep its runtime assets out of the
          publish output. Credentials enables plugin credential providers
          (e.g. Azure Artifacts) for the packages.config artifact downloads. -->
-    <PackageReference Include="NuGet.Common" Version="6.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.Configuration" Version="6.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.Credentials" Version="6.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.DependencyResolver.Core" Version="6.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.Frameworks" Version="6.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.LibraryModel" Version="6.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.Packaging" Version="6.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.ProjectModel" Version="6.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.Protocol" Version="6.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.Versioning" Version="6.0.0" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Common" Version="6.0.6" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Configuration" Version="6.0.6" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Credentials" Version="6.0.6" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.DependencyResolver.Core" Version="6.0.6" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Frameworks" Version="6.0.6" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.LibraryModel" Version="6.0.6" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Packaging" Version="6.0.6" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.ProjectModel" Version="6.0.6" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Protocol" Version="6.0.6" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Versioning" Version="6.0.6" ExcludeAssets="runtime" />
   </ItemGroup>
 
 </Project>
