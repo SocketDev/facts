@@ -1,7 +1,7 @@
 # facts
 
 <a href="https://badge.socket.dev/npm/package/@socketsecurity/facts"><img src="https://badge.socket.dev/npm/package/@socketsecurity/facts" alt="Socket Badge" height="20"></a>
-![Coverage](https://raw.githubusercontent.com/SocketDev/socket-facts/HEAD/assets/repo/badges/coverage.svg)
+<img src="https://raw.githubusercontent.com/SocketDev/socket-facts/HEAD/assets/coverage.svg" width="97" height="20" alt="Coverage" />
 
 [![Follow @SocketSecurity](https://raw.githubusercontent.com/SocketDev/socket-facts/HEAD/assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](https://raw.githubusercontent.com/SocketDev/socket-facts/HEAD/assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)
@@ -69,6 +69,9 @@ const { artifactPaths, code, facts, report } = await runFactsGeneration({
 })
 ```
 
+<details>
+<summary>The other three entry points: wire contracts, conformance, and emitter assets</summary>
+
 Share the wire contracts instead of re-declaring them:
 
 ```js
@@ -108,6 +111,8 @@ import {
   sbtPluginSourcePath,
 } from '@socketsecurity/facts/assets'
 ```
+
+</details>
 
 ## Development
 
