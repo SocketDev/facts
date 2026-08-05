@@ -9,6 +9,14 @@
     "from": "npm-registry",
     "type": "js"
   },
+  "release": {
+    "provenanceOrphanBaseline": [
+      {
+        "id": "@socketsecurity/facts@0.0.0",
+        "reason": "The name-reservation placeholder, published before the fleet release pipeline was wired up: the npm attestation endpoint answers 404 for it, so it carries no SLSA statement at all. npm mints attestations at publish time and they are immutable, so no tag and no commit can repair it. The first real release publishes through the pipeline with provenance."
+      }
+    ]
+  },
   "vitest": {
     "lanes": {
       "slow": ["test/repo/compat"]
