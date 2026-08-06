@@ -72,7 +72,7 @@ catalog:
   # accidentally"), so the catalog-drift automation skips it and this pin is
   # hand-aligned with the canonical fleet catalog; bump to the stabilized 15.x
   # when it ships.
-  'nock': 14.0.16
+  'nock': 14.0.17
   # npm-high-impact 1.13.0 — wooorm's high-impact npm package lists
   # (npmHighImpact + npmTopDependents + npmTopDownloads); the ecosystem-reach
   # input for scripts/fleet/measure-ecosystem-impact.mts, which ranks override
@@ -91,7 +91,7 @@ catalog:
   # playwright-core — headless Chromium driver for the seeing-rendered-output
   # skill (render a page / unpacked MV3 extension popup to PNG). Fleet-canonical
   # catalog dep; source of truth is template/pnpm-workspace.fleet.yaml.
-  'playwright-core': 1.62.0
+  'playwright-core': 1.62.1
   # portless — stable HTTPS `.localhost` URLs for local page tests and rendered UI checks.
   'portless': 0.15.5
   # Direct bundler pin for repos that run rolldown as their build
@@ -506,6 +506,8 @@ minimumReleaseAgeExclude:
   - 'rolldown-plugin-dts@0.28.0'
   # published: 2026-08-05 | removable: 2026-08-12
   - 'rolldown@1.2.3'
+  # published: 2026-07-30 | removable: 2026-08-06
+  - 'playwright-core@1.62.1'
 
 allowBuilds:
   # sdk 4.0.3 ships a `preinstall` bootstrap script in the published tarball;
