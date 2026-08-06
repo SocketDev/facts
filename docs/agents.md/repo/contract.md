@@ -9,9 +9,9 @@ library rather than a socket-cli internal, so treat them as published shapes.
 
 The reachability consumer hand-maintains its own copies:
 
-- `coana-package-manager/packages/shared-types/src/socket-facts-schema.ts` — a
+- `coana-package-manager/packages/shared-types/src/socket-facts-schema.ts` - a
   parallel type declaration of the SBOM side.
-- `.../java/sidecar-artifact-paths.ts` — a zod schema for the sidecar, with
+- `.../java/sidecar-artifact-paths.ts` - a zod schema for the sidecar, with
   `.strict()` on the component object.
 
 Two hand-maintained copies of one format drift, and the drift is silent until a
@@ -41,7 +41,7 @@ subprojects outside the sidecar's build root. The pinned 15.9.5 contains the
 relaxed behavior.
 
 The consequence is the load-bearing part. **The sidecar is an accelerator, not an
-authority.** A gap does not fail the scan and does not narrow it — it silently
+authority.** A gap does not fail the scan and does not narrow it - it silently
 hands that coordinate back to the reach-time resolution the sidecar design
 (#1385) set out to eliminate, with that path's latency, its network dependency,
 and its lower success rate. So a coverage gap is a correctness and performance
@@ -60,7 +60,7 @@ every other absent-optional would be fine.
 ## An additive field is a coordinated release
 
 The sidecar consumer's component schema is `.strict()`. Under a strict schema an
-unrecognized key is not ignored — it fails the parse, and the failure is
+unrecognized key is not ignored - it fails the parse, and the failure is
 whole-payload, not per-field. So adding **any** field to `ResolvedComponent`,
 including a `schemaVersion` intended to make future additions safe, breaks every
 consumer pinned to a version released before the addition.
@@ -85,7 +85,7 @@ The validator is asymmetric here on purpose: it accepts a payload with no
 `ecosystem` key, because that is exactly what a sidecar written before the tag
 existed looks like, and it means `maven`. Strict producer, liberal consumer.
 
-### Proposed versioning approach — not adopted
+### Proposed versioning approach - not adopted
 
 Recorded here so the next person does not have to rederive it. **Do not
 implement any of this unilaterally**; it is a change to a format two

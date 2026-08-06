@@ -10,7 +10,7 @@ different resolution.
 socket-cli #1352 (2026-06-04) delegated JVM facts generation to a reachability
 partner. #1385 reversed it 26 days later, because the partner re-resolved the
 build at reachability time and diverged from the scan-time build on projects
-whose versions are dynamic — git-derived versions, CI build numbers, timestamps.
+whose versions are dynamic - git-derived versions, CI build numbers, timestamps.
 The partner landed the mirror image the same day, deleting its own manifest
 surface.
 
@@ -19,7 +19,7 @@ surface.
 The compat matrix that guarded the emitters used literal versions throughout: no
 wildcard, no range, no BOM import, no SNAPSHOT, no conflict resolution.
 Byte-equivalence on those fixtures is satisfiable by an implementation that never
-runs the build at all — a cache read or a static parse of the build file produces
+runs the build at all - a cache read or a static parse of the build file produces
 the same answer, because the build file already contains it.
 
 That made the one criterion that mattered untested, which is why the ownership
@@ -59,7 +59,7 @@ tested.
 
 ## The gate any future ownership change has to pass
 
-This suite, green, on the candidate implementation — not on this one. An
+This suite, green, on the candidate implementation - not on this one. An
 implementation that resolves from a cache, from a lockfile, or from a static
 parse fails it. That is the receipt the ownership question needs and did not
 have.

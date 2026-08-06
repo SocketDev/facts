@@ -13,7 +13,7 @@ parser output against real `mvn dependency:tree` output. Same three moves:
 
 1. **Run the build's own report.** `gradle dependencies --configuration <name>`
    or `mvn dependency:tree -DoutputType=json`.
-2. **Parse it to a `GroundTruth`** — `group:name` → resolved version, plus the
+2. **Parse it to a `GroundTruth`** - `group:name` → resolved version, plus the
    edge set. `parseGradleDependencyTree` reads the `selector -> resolved`
    substitution the report prints, which is the resolver stating in its own
    words that the declared and the resolved version differ.
@@ -43,7 +43,7 @@ throw, and the caller chooses between a loud skip and a hard failure through
 `SOCKET_FACTS_REQUIRE_COMPAT`.
 
 **No static fallback anywhere.** sdxgen's Maven path falls back to parsing the
-pom when `mvn` is absent, and its sbt parser never executes sbt at all — its own
+pom when `mvn` is absent, and its sbt parser never executes sbt at all - its own
 header calls it "regex-based build.sbt parsing (no Scala compiler)…
 best-effort". That posture is right for sdxgen, whose job is to produce a
 manifest from whatever is available. It is wrong here: a static fallback
@@ -57,7 +57,7 @@ sdxgen's JVM lane is the intended consumer, not the supplier. When it adopts
 this package it can delete its own
 `src/parsers/gradle/dependency-tree.init.gradle` duplication and replace its
 best-effort sbt regex with real plugin-driven resolution. facts does **not**
-depend on sdxgen and never should — sdxgen's optional-execution posture is the
+depend on sdxgen and never should - sdxgen's optional-execution posture is the
 thing this package exists to not have.
 
 The public API is shaped so that a CycloneDX conversion is comfortable on
@@ -79,8 +79,8 @@ argument is that it owns exactly one.
 | sdxgen module          | Here                                                                                                                                                              |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `tool-comparison.mts`  | ported in shape as `src/conformance/`, with a zero-divergence assertion instead of a percentage                                                                   |
-| `spawn-timeouts.mts`   | ported as `src/run/timeouts.mts` — the facts spawn previously had no ceiling, so a wedged build hung a scan                                                       |
-| `tool-version.mts`     | not ported — the emitter's own `meta` record already reports the version of the tool that actually ran, which is strictly better than probing a binary beforehand |
-| `tool-diagnostics.mts` | not ported — its warnings describe an OPTIONAL execution being enabled; execution is mandatory here, and the resolution report already carries per-failure detail |
-| `file-cache.mts`       | not ported, and must not be — a cache on the resolution path is the failure mode, not an optimization                                                             |
-| `error-context.mts`    | not ported — `@socketsecurity/lib/errors/*` plus the What/Where/Saw/Fix convention already covers it                                                              |
+| `spawn-timeouts.mts`   | ported as `src/run/timeouts.mts` - the facts spawn previously had no ceiling, so a wedged build hung a scan                                                       |
+| `tool-version.mts`     | not ported - the emitter's own `meta` record already reports the version of the tool that actually ran, which is strictly better than probing a binary beforehand |
+| `tool-diagnostics.mts` | not ported - its warnings describe an OPTIONAL execution being enabled; execution is mandatory here, and the resolution report already carries per-failure detail |
+| `file-cache.mts`       | not ported, and must not be - a cache on the resolution path is the failure mode, not an optimization                                                             |
+| `error-context.mts`    | not ported - `@socketsecurity/lib/errors/*` plus the What/Where/Saw/Fix convention already covers it                                                              |

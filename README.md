@@ -20,16 +20,16 @@ both consumers import it instead of the code moving back and forth again.
 `socket.json` lets a repository supply the build binary and its options, which
 makes that an attacker-controlled input and the consumer's call. So
 `runFactsGeneration` takes an invocation that is already resolved and already
-vetted — an absolute `bin`, an explicit `opts` array, an explicit `env`, an
-explicit `cwd` — and throws when any of them is missing rather than falling back
+vetted - an absolute `bin`, an explicit `opts` array, an explicit `env`, an
+explicit `cwd` - and throws when any of them is missing rather than falling back
 to a PATH lookup, a wrapper probe, or `process.env`. It runs the invocation; it
 does not assemble one.
 
 The property everything here protects is that **resolution happens once, at scan
 time, against the developer's real build**. A resolver that reads a cache or
 parses a manifest statically passes a literal-version fixture and diverges on a
-real project, so the conformance suite is built out of selectors — a wildcard, a
-bounded range, a SNAPSHOT, and a project version generated per run — whose
+real project, so the conformance suite is built out of selectors - a wildcard, a
+bounded range, a SNAPSHOT, and a project version generated per run - whose
 answers appear in no committed file, and it diffs what this package emitted
 against what the build tool itself reports resolving. There is no static
 fallback: a build tool that cannot run is a loud failure, never a degraded
@@ -57,7 +57,7 @@ import { runFactsGeneration } from '@socketsecurity/facts'
 
 const { artifactPaths, code, facts, report } = await runFactsGeneration({
   tool: 'gradle',
-  // Absolute, and chosen by your trust policy — not looked up here.
+  // Absolute, and chosen by your trust policy - not looked up here.
   bin: '/repo/gradlew',
   // Already filtered by your trust policy.
   opts: [],

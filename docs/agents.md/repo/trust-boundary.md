@@ -32,7 +32,7 @@ which is exactly the arrangement the #1385 reversal came out of.
 Each failure names the field, what was wanted, and that the caller must supply
 it. None of them is recoverable by guessing, so none of them is guessed.
 
-`src/run/build-tool.mts` exports what the consumer needs to compute a candidate —
+`src/run/build-tool.mts` exports what the consumer needs to compute a candidate -
 the conventional binary name per tool, the wrapper filename per tool, and the
 absolute path a wrapper would occupy. All three are pure. The wrapper helper does
 not check that the file exists, because existence is not the question the
