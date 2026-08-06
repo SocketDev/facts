@@ -80,6 +80,55 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
+      # A THIN member tracks no scripts/fleet/** — the payload ships only in
+      # the release bundle. This job deliberately runs no install (see the
+      # note below), so nothing else here can materialize it and "Detect tag
+      # gaps" would die with MODULE_NOT_FOUND on reconcile-gap.mts every
+      # cron. Hydrate on the same detect/mint/fetch shape the checkout
+      # composite uses; fetching is dep-0 (plain .mjs, node builtins), so it
+      # keeps this job's no-install property intact.
+      - name: Detect thin fleet payload
+        id: detect-hydration
+        shell: bash
+        run: |
+          set -euo pipefail
+          NEEDED=false
+          if [ ! -f scripts/fleet/setup/external-tools.json ] \
+            && [ -f scripts/repo/bootstrap/fleet.mjs ]; then
+            NEEDED=true
+          fi
+          echo "needed=${NEEDED}" >> "${GITHUB_OUTPUT}"
+      # The bundle lives in a GitHub Release on the PRIVATE wheelhouse repo and
+      # the fleet-pack GHCR package does not serve anonymous pulls, so this
+      # job's own github.token — scoped to THIS repo — cannot read it. Mint the
+      # read-only payload token, exactly as the checkout composite does.
+      - name: Mint fleet payload read token
+        id: payload-token
+        if: steps.detect-hydration.outputs.needed == 'true' && vars.SOCKET_PAYLOAD_CLIENT_ID != ''
+        uses: ./.github/actions/fleet/github-payload-app-token
+        with:
+          client-id: ${{ vars.SOCKET_PAYLOAD_CLIENT_ID }}
+          private-key: ${{ secrets.SOCKET_PAYLOAD_APP_PRIVATE_KEY }}
+      - name: Hydrate thin fleet payload
+        if: steps.detect-hydration.outputs.needed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.payload-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          if ! node scripts/repo/bootstrap/fleet.mjs; then
+            echo "::error title=fleet payload hydration failed::node scripts/repo/bootstrap/fleet.mjs exited non-zero"
+            {
+              echo "  What:   the thin fleet payload fetch failed, so the tag-gap"
+              echo "          healer cannot read scripts/fleet/release-pipeline/."
+              echo "  Where:  scripts/repo/bootstrap/fleet.mjs, called from the gap job."
+              echo "  Fix:    confirm .config/repo/socket-wheelhouse.json carries a valid"
+              echo "          bundle.ref, and that SOCKET_PAYLOAD_CLIENT_ID (var) plus"
+              echo "          SOCKET_PAYLOAD_APP_PRIVATE_KEY (secret) are provisioned —"
+              echo "          without them the private-release fallback is unauthenticated."
+            } >&2
+            exit 1
+          fi
       # Deliberately NO setup-and-install: reconcile-gap.mts is dependency-free
       # by design (node builtins only) so the cron's common no-gap path runs on
       # the runner's preinstalled Node — modern runner images strip .mts types
