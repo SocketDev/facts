@@ -5,6 +5,10 @@
   "repo": {
     "type": "solo"
   },
+  "bundle": {
+    "ref": "fleet-pack-be357fd7877f9ca874fd27e23c2530783a74b7fb",
+    "cascadeSha": "be357fd7877f9ca874fd27e23c2530783a74b7fb"
+  },
   "build": {
     "from": "npm-registry",
     "type": "js"
