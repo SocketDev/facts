@@ -6,8 +6,8 @@
     "type": "solo"
   },
   "bundle": {
-    "ref": "fleet-pack-aea37f35901292a0298e04fd10c4edbffa850332",
-    "cascadeSha": "aea37f35901292a0298e04fd10c4edbffa850332"
+    "ref": "fleet-pack-7db5bc4592dda7797e3caae53114b962aa540764",
+    "cascadeSha": "7db5bc4592dda7797e3caae53114b962aa540764"
   },
   "build": {
     "from": "npm-registry",
@@ -23,7 +23,9 @@
   },
   "vitest": {
     "lanes": {
-      "slow": ["test/repo/compat"]
+      "slow": [
+        "test/repo/compat"
+      ]
     }
   }
 }
