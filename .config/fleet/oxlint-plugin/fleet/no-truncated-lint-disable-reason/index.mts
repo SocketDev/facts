@@ -8,7 +8,7 @@
  *   width rule and produces this, which a reader meets back to front:
  *
  *     // sync stdin/stdout + typed string return; v5 omits 'encoding'.
- *     // oxlint-disable-next-line socket/prefer-async-spawn -- hook + runner need
+ *     // oxlint-disable-next-line socket/prefer-async-spawn -- hooks+runner
  *
  *   A sweep over this tree did exactly that at scale, so the rule exists to
  *   make the shortcut fail rather than to be remembered.
