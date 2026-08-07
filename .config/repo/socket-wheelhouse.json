@@ -9,8 +9,8 @@
     "type": "solo"
   },
   "bundle": {
-    "ref": "fleet-pack-aea37f35901292a0298e04fd10c4edbffa850332",
-    "cascadeSha": "aea37f35901292a0298e04fd10c4edbffa850332"
+    "ref": "fleet-pack-ea8446a965074e703d3730a71140434669f874f1",
+    "cascadeSha": "ea8446a965074e703d3730a71140434669f874f1"
   },
   "build": {
     "from": "npm-registry",
