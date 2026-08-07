@@ -29,7 +29,7 @@ export type ResolvedComponent = {
   ext: string
   // The serialized sidecar carries an explicit JSON null for "no classifier";
   // omitting the key would change the wire shape a `.strict()` consumer parses.
-  // socket-lint: allow prefer-undefined-over-null
+  // oxlint-disable-next-line socket/prefer-undefined-over-null -- wire shape
   classifier: string | null
   // The artifact's purl `type`, carried verbatim as the ecosystem
   // discriminator each consumer filters on: 'maven' for gradle/sbt/maven,
