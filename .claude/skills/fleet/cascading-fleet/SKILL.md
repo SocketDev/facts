@@ -21,7 +21,7 @@ The fleet runs on `chore(wheelhouse): cascade template@<sha>` commits. Every whe
 - Batching multiple template SHAs into one wave.
 
 Tool-version bumps (pnpm, zizmor, sfw, …) route through the wheelhouse-owned
-<!-- socket-lint: allow cross-repo -->
+<!-- oxlint-disable-next-line socket/no-cross-repo-path -->
 
 pipeline (`node scripts/repo/pipeline.mts`, run FROM the wheelhouse: bump →
 reconcile → CI-green gate → propagate); this skill then carries the resulting
@@ -106,7 +106,7 @@ The cascade script (`lib/cascade-template.mts`) is deterministic - it `--no-veri
 
 2. **Stranded local commits** (local `main` diverged with un-pushed `chore(wheelhouse): cascade …` commits that origin already superseded). Confirm with `git branch -r --contains <sha>` (empty = local-only) and `git log --oneline HEAD..origin/main` (origin has newer cascades). If origin already has the work in canonical form, `git reset --hard origin/main` (needs `Allow reset bypass`) - nothing real is lost. Otherwise rebase the genuine local-unique commits on top.
 
-3. <!-- socket-lint: allow cross-repo --> **Soak-bypassing a tool bump** (pnpm/zizmor/sfw newer than the 7-day `minimumReleaseAge`). The auto-updater (`scripts/repo/update-external-tools.mts`, dry-run by default; `--apply` flushes) skips fresh releases. To bump anyway: hand-pin `external-tools.json` (version + every platform asset + recomputed sha256 integrity from the upstream GitHub release; npm-tarball platforms use npm `dist.integrity`), needs `Allow soak-time bypass` (alias: `Allow minimumReleaseAge bypass`). Then run the wheelhouse tool-pin pipeline (`node scripts/repo/pipeline.mts`, from the wheelhouse) to bump, reconcile, and gate on CI-green, then commit the `external-tools.json` bump and cascade it fleet-wide with this skill. **Why:** a `packageManager` pin that drifts from the CI runner's pnpm red-lines fleet CI, and a pnpm bump can surface a previously-dormant `allowBuilds` placeholder that then trips `ERR_PNPM_IGNORED_BUILDS` - bump the tool and reconcile the build allowlist in the same wave.
+3. <!-- oxlint-disable-next-line socket/no-cross-repo-path --> **Soak-bypassing a tool bump** (pnpm/zizmor/sfw newer than the 7-day `minimumReleaseAge`). The auto-updater (`scripts/repo/update-external-tools.mts`, dry-run by default; `--apply` flushes) skips fresh releases. To bump anyway: hand-pin `external-tools.json` (version + every platform asset + recomputed sha256 integrity from the upstream GitHub release; npm-tarball platforms use npm `dist.integrity`), needs `Allow soak-time bypass` (alias: `Allow minimumReleaseAge bypass`). Then run the wheelhouse tool-pin pipeline (`node scripts/repo/pipeline.mts`, from the wheelhouse) to bump, reconcile, and gate on CI-green, then commit the `external-tools.json` bump and cascade it fleet-wide with this skill. **Why:** a `packageManager` pin that drifts from the CI runner's pnpm red-lines fleet CI, and a pnpm bump can surface a previously-dormant `allowBuilds` placeholder that then trips `ERR_PNPM_IGNORED_BUILDS` - bump the tool and reconcile the build allowlist in the same wave.
 
 ## Reference
 
