@@ -21,22 +21,81 @@
  *   the short phrase and which is the paragraph.
  */
 
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+
 import type { AstNode, RuleContext } from '../../lib/rule-types.mts'
 
 /**
- * The fleet's oxfmt `printWidth`. Kept here rather than read from the config
- * because a lint rule runs per file with no config loader, and the two moving
- * together is what `lint-configs-protect-verbatim` already gates.
+ * The column limit when `.editorconfig` cannot be read, matching the value it
+ * declares. A fallback, never the source of truth.
  */
-export const PRINT_WIDTH = 80
+export const DEFAULT_PRINT_WIDTH = 80
+
+/**
+ * The narrowest reason worth asking for, in columns. A long rule name on an
+ * indented line can leave only a few columns before the limit, and a phrase
+ * that short says nothing a reader can use. Below this the finding would be an
+ * instruction nobody can follow, so the line is left alone.
+ */
+export const MIN_REASON_COLUMNS = 16
+
+/**
+ * `max_line_length` from the nearest `.editorconfig`, walking up from `fromDir`
+ * to the filesystem root. Answers undefined when no ancestor declares one.
+ *
+ * `.editorconfig` is where a repo states its column limit for every editor and
+ * tool, so it is the one place this rule reads. Duplicating the number here
+ * would put the limit in two files that drift.
+ *
+ * Pure over the filesystem apart from the reads, and exported for tests.
+ */
+export function readEditorConfigLineLength(
+  fromDir: string,
+  readFile: (filePath: string) => string | undefined = defaultReadFile,
+): number | undefined {
+  let dir = fromDir
+  for (;;) {
+    const text = readFile(path.join(dir, '.editorconfig'))
+    if (text !== undefined) {
+      const match = /^\s*max_line_length\s*=\s*(\d+)\s*$/m.exec(text)
+      if (match) {
+        return Number.parseInt(match[1]!, 10)
+      }
+    }
+    const parent = path.dirname(dir)
+    if (parent === dir) {
+      return undefined
+    }
+    dir = parent
+  }
+}
+
+/**
+ * Reads a file, answering undefined when it is absent or unreadable. The
+ * default seam {@link readEditorConfigLineLength} walks with; exported so a
+ * test can assert the swallow rather than reach the filesystem to prove it.
+ */
+export function defaultReadFile(filePath: string): string | undefined {
+  try {
+    return readFileSync(filePath, 'utf8')
+  } catch {
+    return undefined
+  }
+}
 
 /**
  * A disable directive in either linter's spelling, with a reason after `--`.
  * The reason is what makes these lines long, so a directive without one cannot
  * overflow for the reason this rule exists to catch.
  */
+// Not anchored to the line start, and `-line` is spelled out alongside
+// `-next-line`. A trailing `code() // oxlint-disable-line rule -- reason` is
+// the same directive with the same width problem, and the earlier
+// start-anchored pattern let it through: moving a long directive onto the code
+// line evaded the rule entirely rather than fixing anything.
 const DISABLE_WITH_REASON_RE =
-  /^\s*(?:\/\*|\/\/)\s*(?:eslint|oxlint)-disable(?:-next-line)?\s+\S+.*--\s*\S/
+  /(?:\/\*|\/\/)\s*(?:eslint|oxlint)-disable(?:-line|-next-line)?\s+\S+.*--\s*\S/
 
 /**
  * Whether `line`, exactly as authored, is a disable directive carrying a reason
@@ -45,11 +104,51 @@ const DISABLE_WITH_REASON_RE =
  * Pure and exported so the behavior is tested directly on strings. The rule
  * body only locates candidate lines; every judgment lives here.
  */
+/**
+ * True when a directive on `line` is being SHOWN rather than applied: a JSDoc
+ * continuation (` * ...`) inside a doc block, or one quoted inside backticks.
+ * Neither reaches the linter, so judging their width or wording would flag the
+ * documentation that explains the rule.
+ */
+export function isIllustratedDirective(line: string): boolean {
+  if (/^\s*\*/.test(line)) {
+    return true
+  }
+  const directiveAt = line.search(/(?:eslint|oxlint)-disable/)
+  return directiveAt !== -1 && line.slice(0, directiveAt).includes('`')
+}
+
 export function isOverlongDisableLine(
   line: string,
-  limit: number = PRINT_WIDTH,
+  limit: number = DEFAULT_PRINT_WIDTH,
 ): boolean {
-  return DISABLE_WITH_REASON_RE.test(line) && line.length > limit
+  if (
+    isIllustratedDirective(line) ||
+    !DISABLE_WITH_REASON_RE.test(line) ||
+    line.length <= limit
+  ) {
+    return false
+  }
+  // Only report what the author can act on. A directive naming several rules
+  // can exceed the limit on its rule list alone, and no amount of moving prose
+  // upward shortens it. Measure the line with the reason cut to one token: if
+  // that STILL overflows, the width is irreducible and the finding would be an
+  // instruction the reader cannot follow. Splitting such a directive into a
+  // file-scope disable is worse, because `no-file-scope-oxlint-disable` bans
+  // that outright. The same holds a notch earlier: a directive that fits but
+  // leaves under MIN_REASON_COLUMNS has no room for a phrase worth reading.
+  return limit - withMinimalReason(line).length + 1 >= MIN_REASON_COLUMNS
+}
+
+/**
+ * The line as it would read with the shortest useful reason, which is the
+ * floor {@link isOverlongDisableLine} measures actionability against.
+ */
+export function withMinimalReason(line: string): string {
+  return line.replace(
+    /(\s--\s).*$/,
+    (_match: string, separator: string) => `${separator}x`,
+  )
 }
 
 /**
@@ -58,7 +157,7 @@ export function isOverlongDisableLine(
  */
 export function findOverlongDisableLines(
   text: string,
-  limit: number = PRINT_WIDTH,
+  limit: number = DEFAULT_PRINT_WIDTH,
 ): number[] {
   const found: number[] = []
   const lines = text.split('\n')
@@ -91,10 +190,18 @@ const rule = {
     const sourceCode = context.getSourceCode
       ? context.getSourceCode()
       : context.sourceCode
+    // Resolved from the LINTED FILE's own tree, so a repo that sets a different
+    // max_line_length is measured against its own limit rather than the
+    // fleet's. Read once per file, not once per line.
+    const filename = context.filename ?? context.getFilename?.() ?? ''
+    const limit =
+      (filename
+        ? readEditorConfigLineLength(path.dirname(filename))
+        : undefined) ?? DEFAULT_PRINT_WIDTH
     return {
       // Scans the SOURCE TEXT rather than the comment nodes. A disable
-      // directive is a line-shaped thing, and its authored width — indentation
-      // included — is exactly what the limit governs, so reading the raw lines
+      // directive is a line-shaped thing, and its authored width - indentation
+      // included - is exactly what the limit governs, so reading the raw lines
       // measures the property directly instead of reconstructing it from a
       // comment node whose shape varies by parser.
       Program(node: AstNode) {
@@ -103,7 +210,7 @@ const rule = {
           return
         }
         const lines = text.split('\n')
-        const overlong = findOverlongDisableLines(text)
+        const overlong = findOverlongDisableLines(text, limit)
         for (let i = 0, { length } = overlong; i < length; i += 1) {
           const lineNumber = overlong[i]!
           const width = (lines[lineNumber - 1] ?? '').length
@@ -114,7 +221,7 @@ const rule = {
               end: { column: width, line: lineNumber },
             },
             messageId: 'longDisableReason',
-            data: { limit: String(PRINT_WIDTH), width: String(width) },
+            data: { limit: String(limit), width: String(width) },
           })
         }
       },
@@ -122,5 +229,6 @@ const rule = {
   },
 }
 
-// oxlint-disable-next-line socket/no-default-export -- oxlint plugin contract requires default-exported rule object.
+// The oxlint plugin contract requires a default-exported rule object.
+// oxlint-disable-next-line socket/no-default-export -- plugin contract
 export default rule
