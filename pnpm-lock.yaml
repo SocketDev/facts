@@ -205,12 +205,15 @@ settings:
 
 catalogs:
   default:
+    '@playwright/mcp':
+      specifier: 0.0.78
+      version: 0.0.78
     '@redwoodjs/agent-ci':
       specifier: 0.17.1
       version: 0.17.1
     '@shadscan/cli':
-      specifier: 0.7.0
-      version: 0.7.0
+      specifier: 0.8.0
+      version: 0.8.0
     '@socketregistry/packageurl-js-stable':
       specifier: npm:@socketregistry/packageurl-js@1.5.2
       version: 1.5.2
@@ -262,6 +265,9 @@ catalogs:
     mdast-util-gfm:
       specifier: 3.1.0
       version: 3.1.0
+    mdast-util-to-markdown:
+      specifier: 2.1.2
+      version: 2.1.2
     micromark:
       specifier: 4.0.2
       version: 4.0.2
@@ -272,8 +278,8 @@ catalogs:
       specifier: 0.3.0
       version: 0.3.0
     nock:
-      specifier: 14.0.17
-      version: 14.0.17
+      specifier: 14.0.16
+      version: 14.0.16
     npm-high-impact:
       specifier: 1.13.0
       version: 1.13.0
@@ -388,12 +394,15 @@ importers:
         specifier: 6.7.0
         version: 6.7.0(typescript@7.0.2)
     devDependencies:
+      '@playwright/mcp':
+        specifier: 'catalog:'
+        version: 0.0.78
       '@redwoodjs/agent-ci':
         specifier: 'catalog:'
         version: 0.17.1(supports-color@7.2.0)
       '@shadscan/cli':
         specifier: 'catalog:'
-        version: 0.7.0
+        version: 0.8.0
       '@sinclair/typebox':
         specifier: 0.34.52
         version: 0.34.52
@@ -451,6 +460,9 @@ importers:
       mdast-util-gfm:
         specifier: 'catalog:'
         version: 3.1.0(supports-color@7.2.0)
+      mdast-util-to-markdown:
+        specifier: 'catalog:'
+        version: 2.1.2
       micromark:
         specifier: 'catalog:'
         version: 4.0.2(supports-color@7.2.0)
@@ -462,7 +474,7 @@ importers:
         version: 0.3.0(parse5@8.0.1)
       nock:
         specifier: 'catalog:'
-        version: 14.0.17
+        version: 14.0.16
       npm-high-impact:
         specifier: 'catalog:'
         version: 1.13.0
@@ -853,19 +865,6 @@ importers:
         version: 26.1.2
 
   .claude/hooks/fleet/compound-lessons-nudge:
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 26.1.2
-
-  .claude/hooks/fleet/concurrent-cargo-build-guard:
-    dependencies:
-      '@socketsecurity/lib-stable':
-        specifier: 'catalog:'
-        version: '@socketsecurity/lib@6.7.0(typescript@7.0.2)'
-      shell-quote:
-        specifier: 'catalog:'
-        version: 1.10.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -2613,6 +2612,8 @@ importers:
 
   .config/fleet/oxlint-plugin/fleet/inclusive-language: {}
 
+  .config/fleet/oxlint-plugin/fleet/lint-disable-precedes-code: {}
+
   .config/fleet/oxlint-plugin/fleet/max-comment-block-lines: {}
 
   .config/fleet/oxlint-plugin/fleet/max-file-lines: {}
@@ -2709,6 +2710,8 @@ importers:
 
   .config/fleet/oxlint-plugin/fleet/no-top-level-await: {}
 
+  .config/fleet/oxlint-plugin/fleet/no-truncated-lint-disable-reason: {}
+
   .config/fleet/oxlint-plugin/fleet/no-underscore-identifier: {}
 
   .config/fleet/oxlint-plugin/fleet/no-use-strict-in-esm: {}
@@ -2773,6 +2776,8 @@ importers:
 
   .config/fleet/oxlint-plugin/fleet/prefer-pure-call-form: {}
 
+  .config/fleet/oxlint-plugin/fleet/prefer-replace-function: {}
+
   .config/fleet/oxlint-plugin/fleet/prefer-repo-root-dot-cache: {}
 
   .config/fleet/oxlint-plugin/fleet/prefer-safe-delete: {}
@@ -2820,6 +2825,8 @@ importers:
   .config/fleet/oxlint-plugin/fleet/sort-set-args: {}
 
   .config/fleet/oxlint-plugin/fleet/sort-source-methods: {}
+
+  .config/fleet/oxlint-plugin/fleet/terse-lint-disable-reason: {}
 
   .config/fleet/oxlint-plugin/fleet/use-fleet-canonical-api-token-getter: {}
 
@@ -3197,6 +3204,11 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@playwright/mcp@0.0.78':
+    resolution: {integrity: sha512-XLTUeA6mEN9sQ+hJ4dfG8EIkDbxS0K3Trc2RBkUJuf02TgE2FQRNTMtq/aJfhyRMINsRl/Ybc4sxcWLtFn4/TQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
 
@@ -3328,8 +3340,8 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@shadscan/cli@0.7.0':
-    resolution: {integrity: sha512-zcm+UW6BRcPxzbgJIkRyQM0q38y0aoxlp/WPvVld8jxpBEHvRIU9bn81MOvq/OHCjkyRHTFwP7Tl1xYhbjqfTA==}
+  '@shadscan/cli@0.8.0':
+    resolution: {integrity: sha512-5yyuSJp5EBCCgQYtiRFeHsGrkwrzJViKVvZlo5gpy28LmALPyxY0A2nBKcRicPoiFgkRnoGYYQGkg8dlJxc3Rw==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -3851,6 +3863,11 @@ packages:
   fs-constants@1.0.0:
     resolution: {integrity: sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==}
 
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -4301,8 +4318,8 @@ packages:
       parse5:
         optional: true
 
-  nock@14.0.17:
-    resolution: {integrity: sha512-EjRr1weMa4ALQX35AgZTEnP+weJJjlW1KGDiNM2IQC2069YDHas4f4B4UUYR+TTLyKWxJvOz2wObDKQs/LNreA==}
+  nock@14.0.16:
+    resolution: {integrity: sha512-8r4KEc6nT1D/fdLD/R1BO1CPaVEL8o40u/guFRJlXabN7vr3RmMqyjsY5Krt0nMwhsOAwXQ/mtN5vy5Jh3aErg==}
     engines: {node: '>=18.20.0 <20 || >=20.12.1'}
 
   node-fetch-native@1.6.7:
@@ -4401,8 +4418,18 @@ packages:
     resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
     engines: {node: '>=12'}
 
+  playwright-core@1.62.0-alpha-1783623505000:
+    resolution: {integrity: sha512-CPJZdsA/KGT2QQlekiV6Wt+QlQrZHVSZ6oiNtOI/bYYOIVLM8jfKGWTM4zQiyd4UN+40Cq4cA6lxmZHZbtPvJQ==}
+    engines: {node: '>=20'}
+    hasBin: true
+
   playwright-core@1.62.1:
     resolution: {integrity: sha512-wPYSwEBJY9GHraISXqyqtx0na0LpO3XEX7jNDhntbex7tzUS7kLnZsOlFruFJB4Hi/rhDMjXGqHewDZ68nYZVw==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  playwright@1.62.0-alpha-1783623505000:
+    resolution: {integrity: sha512-6KV9h4PP3hqu4NaGdxxcijWfYh9LJcFI/R2sP4TTC4I5cFo3oRawN0ETlW5MkE3cQEgKhhoj0KUNz4sfpCT0Tg==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -5053,6 +5080,11 @@ snapshots:
   '@oxlint/binding-win32-x64-msvc@1.77.0':
     optional: true
 
+  '@playwright/mcp@0.0.78':
+    dependencies:
+      playwright: 1.62.0-alpha-1783623505000
+      playwright-core: 1.62.0-alpha-1783623505000
+
   '@polka/url@1.0.0-next.29': {}
 
   '@protobufjs/aspromise@1.1.2': {}
@@ -5133,7 +5165,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@shadscan/cli@0.7.0':
+  '@shadscan/cli@0.8.0':
     dependencies:
       cross-spawn: 7.0.6
       jsonc-parser: 3.3.1
@@ -5583,6 +5615,9 @@ snapshots:
       signal-exit: 4.1.0
 
   fs-constants@1.0.0: {}
+
+  fsevents@2.3.2:
+    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -6173,7 +6208,7 @@ snapshots:
     optionalDependencies:
       parse5: 8.0.1
 
-  nock@14.0.17:
+  nock@14.0.16:
     dependencies:
       '@mswjs/interceptors': 0.41.9
       json-stringify-safe: 5.0.1
@@ -6300,7 +6335,15 @@ snapshots:
 
   picomatch@4.0.5: {}
 
+  playwright-core@1.62.0-alpha-1783623505000: {}
+
   playwright-core@1.62.1: {}
+
+  playwright@1.62.0-alpha-1783623505000:
+    dependencies:
+      playwright-core: 1.62.0-alpha-1783623505000
+    optionalDependencies:
+      fsevents: 2.3.2
 
   pnpm-workspace-yaml@1.7.0:
     dependencies:
