@@ -470,15 +470,38 @@ function spliceFleetCanonicalContent(source, target) {
 //#region template/base/scripts/fleet/_shared/github-tracked-surface.mts
 const ALWAYS_TRACKED_GITHUB_PREFIXES = [
   '.github/actions/fleet/',
+  '.github/dependabot.yml',
   '.github/workflows/',
 ]
 /**
+ * Non-GitHub surfaces a member must keep tracked. The unifying rule for BOTH
+ * lists: anything a consumer reads BEFORE our fetch runs has to be in the
+ * commit. pnpm reads `.npmrc` and resolves `patchedDependencies` at install
+ * time, which on a thin member happens after hydration but on a FRESH clone
+ * can precede it; GitHub reads workflows and dependabot.yml from the
+ * committed tree. Same rule, different consumers.
+ *
+ * These cannot live in ALWAYS_TRACKED_GITHUB_PREFIXES: that predicate is
+ * `.github/`-scoped by construction, so a `.npmrc` entry there would never
+ * be reached.
+ */
+const ALWAYS_TRACKED_PREFIXES = ['.npmrc', 'patches/']
+/**
+ * True when `relPath` is any always-tracked surface, GitHub or not. This is
+ * what an untrack set should consult; the GitHub-only predicate below stays
+ * exported for callers that mean the CI surface specifically.
+ */
+function isAlwaysTrackedSurface(relPath) {
+  const p = relPath.replaceAll('\\', '/')
+  for (let i = 0, { length } = ALWAYS_TRACKED_PREFIXES; i < length; i += 1)
+    if (p.startsWith(ALWAYS_TRACKED_PREFIXES[i])) return true
+  return isAlwaysTrackedGitHubSurface(p)
+}
+/**
  * True when `relPath`, repo-relative, either separator, is part of the GitHub
- * CI surface a member must keep git-tracked even when thin — a workflow file or
- * a fleet composite action. `thinIgnoreEntries` gates on this so the untrack
- * set can never strand CI: GitHub reads both surfaces from the committed tree
- * before any fetch step runs, so a `git rm --cached` would break the member's
- * CI outright.
+ * CI surface a member must keep git-tracked even when thin — a workflow file,
+ * a fleet composite action, or dependabot.yml. GitHub reads all of them from
+ * the committed tree before any fetch step runs.
  */
 function isAlwaysTrackedGitHubSurface(relPath) {
   const p = relPath.replaceAll('\\', '/')
@@ -1107,6 +1130,7 @@ function installFiles(filesDir, dest, manifest) {
     const rel = rels[i]
     const source = path.join(filesDir, rel)
     const target = path.join(dest, rel)
+    if (isAlwaysTrackedSurface(rel) && existsSync(target)) continue
     mkdirSync(path.dirname(target), { recursive: true })
     let spliced
     if (isFleetCanonicalSpliceFile(rel) && existsSync(target)) {
@@ -1342,7 +1366,7 @@ function thinIgnoreEntries(manifest) {
     if (
       hybridPaths.has(p) ||
       isFleetCanonicalSpliceFile(p) ||
-      isAlwaysTrackedGitHubSurface(p)
+      isAlwaysTrackedSurface(p)
     )
       continue
     entries.add(p)

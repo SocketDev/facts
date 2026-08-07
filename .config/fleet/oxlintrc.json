@@ -70,7 +70,9 @@
     "socket/no-vitest-skipped-tests": "error",
     "socket/no-vitest-standalone-expect": [
       "error",
-      { "additionalTestBlockFunctions": ["cmdit"] }
+      {
+        "additionalTestBlockFunctions": ["cmdit"]
+      }
     ],
     "socket/no-which-for-local-bin": "error",
     "socket/normalize-path-before-match": "error",
@@ -308,9 +310,12 @@
     "**/.config/repo/vitest.config.mts",
     "**/.config/repo/vitest.settings.mts",
     "**/.mcp.json",
+    "**/test/fleet/e2e/comment-voice.test.mts",
+    "**/test/fleet/integration/comment-voice.test.mts",
     "**/test/fleet/nock-loopback-passthrough.test.mts",
     "**/test/fleet/publish-infra/cargo/placeholder.test.mts",
     "**/test/fleet/publish-infra/npm/placeholder.test.mts",
+    "**/test/fleet/unit/comment-voice.test.mts",
     "</fleet>",
     "#fleet-canonical-end",
     "<repo>",
