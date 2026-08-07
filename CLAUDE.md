@@ -137,12 +137,12 @@
 
 ## 🏗️ facts-Specific
 
-- 🚨 This package NEVER decides whether a build-tool invocation is trustworthy —
+- 🚨 This package NEVER decides whether a build-tool invocation is trustworthy -
   `runFactsGeneration` takes an absolute `bin`, an explicit `opts` array, an
   explicit `env`, and an explicit `cwd`, and throws when any of them is missing.
   No `socket.json` read, no PATH lookup, no defaulted binary.
   [`trust-boundary`](docs/agents.md/repo/trust-boundary.md)
-- 🚨 Resolution happens ONCE, at scan time, against the developer's real build —
+- 🚨 Resolution happens ONCE, at scan time, against the developer's real build -
   a resolver that reads a cache or parses a manifest statically diverges on a
   dynamically-versioned project. The dynamic-version conformance fixture is the
   regression test for that, and it skips loudly rather than passing when no JDK
@@ -155,11 +155,11 @@
   [`contract`](docs/agents.md/repo/contract.md)
 - 🚨 The conformance oracle diffs emitted facts against the BUILD's own report, never a golden file. [`ground-truth-oracle`](docs/agents.md/repo/ground-truth-oracle.md)
 - 🚨 Only `extra` is tolerated in that diff; `missing`, `version-mismatch`, and a missing edge never are. [`ground-truth-oracle`](docs/agents.md/repo/ground-truth-oracle.md)
-- 🚨 No static fallback, anywhere — a build tool that cannot run is a LOUD failure. [`ground-truth-oracle`](docs/agents.md/repo/ground-truth-oracle.md)
+- 🚨 No static fallback, anywhere - a build tool that cannot run is a LOUD failure. [`ground-truth-oracle`](docs/agents.md/repo/ground-truth-oracle.md)
 - 🚨 The dependency runs sdxgen → facts, never the reverse. [`ground-truth-oracle`](docs/agents.md/repo/ground-truth-oracle.md)
 - Keep component identity purl-shaped and the edge list `id`-addressable; the CycloneDX converter is sdxgen's. [`ground-truth-oracle`](docs/agents.md/repo/ground-truth-oracle.md)
 - 🚨 A published install missing `emitters/maven-extension/socket-facts-maven-extension.jar`
-  throws — Maven with no extension emits an empty SBOM, which reads as "no
+  throws - Maven with no extension emits an empty SBOM, which reads as "no
   dependencies" rather than as a failure. (`scripts/repo/check/emitter-assets-are-publishable.mts`)
 - The three emitters carry the same logic in three languages, so a fix to one is
-  a fix to all three — change them in one commit or the drift is immediate.
+  a fix to all three - change them in one commit or the drift is immediate.
