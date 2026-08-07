@@ -2028,6 +2028,7 @@ scripts/fleet/_shared/managed-ruleset-identity.mts
 scripts/fleet/_shared/member-release-probe.mts
 scripts/fleet/_shared/mirror-lock.mts
 scripts/fleet/_shared/odai.mts
+scripts/fleet/_shared/open-url.mts
 scripts/fleet/_shared/pack-files.mts
 scripts/fleet/_shared/pack-inspect.mts
 scripts/fleet/_shared/pack-structure.mts
@@ -2237,6 +2238,7 @@ scripts/fleet/check/native-sources-are-doctrine-clean.mts
 scripts/fleet/check/native-tests-are-network-off.mts
 scripts/fleet/check/node-modules-symlink-is-ignored.mts
 scripts/fleet/check/npm-package-page-is-visible.mts
+scripts/fleet/check/odai-legs-are-switched-on.mts
 scripts/fleet/check/oxlint-plugin-loads.mts
 scripts/fleet/check/pack-bytes-have-no-private-refs.mts
 scripts/fleet/check/pack-contents-are-clean.mts
@@ -2290,6 +2292,7 @@ scripts/fleet/check/rule-citations-are-generic.mts
 scripts/fleet/check/rust-toolchain-pins-are-synced.mts
 scripts/fleet/check/scanner-parity.mts
 scripts/fleet/check/script-paths-resolve.mts
+scripts/fleet/check/scripts-are-segmented.mts
 scripts/fleet/check/security-posture-matches-law.mts
 scripts/fleet/check/security-primitives-have-consumers.mts
 scripts/fleet/check/setup-is-prompt-less.mts
@@ -2338,6 +2341,7 @@ scripts/fleet/check/vitest-config-is-consolidated.mts
 scripts/fleet/check/webhooks-are-allowlisted.mts
 scripts/fleet/check/wheelhouse-controlled-files-are-classified.mts
 scripts/fleet/check/workflow-envs-have-full-fleet-env.mts
+scripts/fleet/check/workflow-installs-have-the-socket-token.mts
 scripts/fleet/check/workflow-scripts-are-explicit-scope.mts
 scripts/fleet/check/workflow-sha-pins-are-stamped.mts
 scripts/fleet/check/workflow-token-is-read-only.mts
@@ -2532,6 +2536,7 @@ scripts/fleet/publish-infra/cargo/shared.mts
 scripts/fleet/publish-infra/cargo/staged.mts
 scripts/fleet/publish-infra/cargo/trusted-publisher.mts
 scripts/fleet/publish-infra/dry-pack.mts
+scripts/fleet/publish-infra/gh-auth.mts
 scripts/fleet/publish-infra/go/shared.mts
 scripts/fleet/publish-infra/napi-matrix.mts
 scripts/fleet/publish-infra/npm/access-context-schema.mts
@@ -2754,6 +2759,7 @@ scripts/fleet/weekly-update/shed-out-of-surface.mts
 scripts/fleet/weekly-update/superseded-cli.mts
 scripts/fleet/weekly-update/superseded.mts
 scripts/fleet/whose-work.mts
+scripts/fleet/worktree-sweep.mts
 test/fleet/_shared/lib/coverage-env.mts
 test/fleet/_shared/lib/env.mts
 test/fleet/_shared/lib/fake-git.mts
