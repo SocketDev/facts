@@ -74,7 +74,7 @@ export function parseRecords(text: string): ParsedRecords {
     return p
   }
 
-  const lines = text.split('\n')
+  const lines = text.split(/\r?\n/)
   for (let i = 0, { length } = lines; i < length; i += 1) {
     // Tolerate CRLF. Splitting on '\n' alone would leave a '\r' glued to each
     // record's LAST field, which is where the grammar puts prod/direct flags,

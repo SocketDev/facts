@@ -84,7 +84,7 @@ export function parseGradleDependencyRow(line: string): GradleRow | undefined {
 export function parseGradleDependencyTree(text: string): GroundTruth {
   const truth = createGroundTruth()
   const stack: string[] = []
-  const lines = text.split('\n')
+  const lines = text.split(/\r?\n/)
   for (let i = 0, { length } = lines; i < length; i += 1) {
     const row = parseGradleDependencyRow(lines[i]!)
     if (!row) {
